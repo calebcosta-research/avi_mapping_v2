@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+data/
+forecasts/output/
+static_terrain/data/
+*.xlsx
