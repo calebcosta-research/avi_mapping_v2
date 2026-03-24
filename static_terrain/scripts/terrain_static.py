@@ -543,8 +543,6 @@ def step_landfire() -> Optional[Path]:
     Returns path to downloaded GeoTIFF, or None if download fails
     (the pipeline can continue with elevation-based treeline as fallback).
     """
-    import urllib.parse
-
     dest = OUT_DIR / "landfire_evt.tif"
     if dest.exists():
         log.info("LANDFIRE EVT exists, skipping")
@@ -552,7 +550,17 @@ def step_landfire() -> Optional[Path]:
 
     log.info("Submitting LANDFIRE EVT job (async)...")
 
-    params = build_landfire_params()
+    # LANDFIRE EVT 2022 layer code: 220EVT
+    # AOI bbox as xmin,ymin,xmax,ymax in WGS84
+    aoi = (
+        f"{BBOX['west']},{BBOX['south']},{BBOX['east']},{BBOX['north']},4326"
+    )
+    params = {
+        "Layer_1":            "220EVT",
+        "Area_of_Interest":   aoi,
+        "Output_Projection":  "32610",      # UTM Zone 10N
+        "f":                  "json",
+    }
     encoded = urllib.parse.urlencode(params).encode()
 
     try:
