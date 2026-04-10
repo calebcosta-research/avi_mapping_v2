@@ -375,9 +375,9 @@ const map = new mapboxgl.Map({
     sources: {
       'base-tiles': {
         type:        'raster',
-        tiles:       BASE_STYLES['mapbox-satellite'].tiles,
-        tileSize:    512,
-        attribution: '© Mapbox © Maxar',
+        tiles:       BASE_STYLES['esri-satellite'].tiles,
+        tileSize:    BASE_STYLES['esri-satellite'].tileSize,
+        attribution: BASE_STYLES['esri-satellite'].attribution,
       },
     },
     layers: [{ id: 'base-tiles', type: 'raster', source: 'base-tiles' }],

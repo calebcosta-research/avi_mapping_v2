@@ -170,7 +170,7 @@ def build_forecast_json(dry_run: bool = False) -> dict:
         log.info("  [%s] %s — %d cells with data",
                  center_id, zone_meta["zone_name"], len(cells))
 
-    output["date"] = sorted(dates_seen)[0] if dates_seen else None
+    output["date"] = sorted(dates_seen)[-1] if dates_seen else None
     log.info("Forecast date: %s | %d zones loaded", output["date"], len(output["zones"]))
 
     if dry_run:
