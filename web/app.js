@@ -537,15 +537,26 @@ function addPredictionLayer() {
 
   map.addSource('gap-predictions', { type: 'geojson', data: buildPredictionGeoJSON() });
 
+  // Dark backing circle — ensures dot is always visible against any terrain
+  map.addLayer({
+    id: 'gap-backing', type: 'circle', source: 'gap-predictions',
+    layout: { visibility: 'none' },
+    paint: {
+      'circle-radius':       20,
+      'circle-color':        '#000000',
+      'circle-opacity':      0.55,
+    },
+  });
+
   // Outer glow — uncertainty ring
   map.addLayer({
     id: 'gap-ring', type: 'circle', source: 'gap-predictions',
     layout: { visibility: 'none' },
     paint: {
-      'circle-radius':          24,
-      'circle-color':           ['get', 'color'],
-      'circle-opacity':         ['*', ['literal', 0.22], ['get', 'ring_opacity']],
-      'circle-stroke-width':    2.5,
+      'circle-radius':          20,
+      'circle-color':           'transparent',
+      'circle-opacity':         0,
+      'circle-stroke-width':    3,
       'circle-stroke-color':    ['get', 'color'],
       'circle-stroke-opacity':  ['get', 'ring_opacity'],
     },
@@ -556,12 +567,12 @@ function addPredictionLayer() {
     id: 'gap-dot', type: 'circle', source: 'gap-predictions',
     layout: { visibility: 'none' },
     paint: {
-      'circle-radius':         10,
+      'circle-radius':         13,
       'circle-color':          ['get', 'color'],
-      'circle-opacity':        0.92,
-      'circle-stroke-width':   1.5,
+      'circle-opacity':        1.0,
+      'circle-stroke-width':   2,
       'circle-stroke-color':   '#ffffff',
-      'circle-stroke-opacity': 0.85,
+      'circle-stroke-opacity': 1.0,
     },
   });
 
@@ -600,7 +611,7 @@ function updatePredictionLayer() {
 function togglePredictions(visible) {
   predictionsVisible = visible;
   const vis = visible ? 'visible' : 'none';
-  ['gap-ring', 'gap-dot', 'gap-label'].forEach(id => {
+  ['gap-backing', 'gap-ring', 'gap-dot', 'gap-label'].forEach(id => {
     if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
   });
 }
