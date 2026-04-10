@@ -3,6 +3,7 @@ __pycache__/
 *.pyo
 .pytest_cache/
 forecasts/output/
+static_terrain/data/
 *.xlsx
 .claude/
 web/tiles/
