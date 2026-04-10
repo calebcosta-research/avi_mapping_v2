@@ -2,7 +2,12 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+
+# Large generated outputs — rebuild locally
 data/
 forecasts/output/
 static_terrain/data/
 *.xlsx
+
+# Generated tile files — too large for git, served from R2
+web/tiles/
