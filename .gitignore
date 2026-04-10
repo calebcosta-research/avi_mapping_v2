@@ -7,3 +7,10 @@ static_terrain/data/
 *.xlsx
 .claude/
 web/tiles/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
