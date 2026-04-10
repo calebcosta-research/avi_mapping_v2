@@ -17,5 +17,5 @@ pandas>=2.0
 # arviz>=0.17
 # pytensor>=2.18
 
-# Phase 2 — GP baseline
-# scikit-learn>=1.3
+# GP baseline model
+scikit-learn>=1.3

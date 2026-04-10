@@ -21,7 +21,7 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        run: pip install requests boto3
+        run: pip install requests boto3 scikit-learn numpy
 
       - name: Fetch forecasts and build forecast.json
         run: python forecasts/scripts/daily_refresh.py --upload
@@ -38,11 +38,17 @@ jobs:
           cp web/data/forecast.json "web/data/forecasts/${DATE}.json"
           python interpolation/scripts/fetch_anchor_forecasts.py --mode extract --date "${DATE}"
 
+      - name: Run GP baseline predictions
+        run: |
+          DATE=$(python -c "import json; print(json.load(open('web/data/forecast.json'))['date'])")
+          python interpolation/scripts/gp_baseline.py --date "${DATE}" || true
+
       - name: Commit forecast data to repo
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add web/data/forecast.json
           git add interpolation/data/anchor_forecasts/ 2>/dev/null || true
+          git add interpolation/data/predictions/ 2>/dev/null || true
           git diff --staged --quiet || git commit -m "chore: daily forecast update $(date -u +%Y-%m-%d)"
           git push
