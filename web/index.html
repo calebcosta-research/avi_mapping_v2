@@ -289,6 +289,48 @@
       color: #7dd3fc !important;
     }
 
+    /* Interpolated zones toggle */
+    #pred-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #aaa;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    #pred-label:hover { color: #ddd; }
+    #pred-toggle { accent-color: #64b4ff; cursor: pointer; }
+
+    /* Prediction popup table */
+    .pred-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .pred-table th {
+      color: #666;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      padding: 0 6px 6px 0;
+      text-align: left;
+    }
+    .pred-table td {
+      padding: 4px 6px 4px 0;
+      color: #ccc;
+      vertical-align: middle;
+    }
+    .popup-model-note {
+      font-size: 10px;
+      color: #555;
+      font-style: italic;
+      margin-top: 6px;
+    }
+
     /* Likelihood color coding */
     .lh-unlikely    { color: #7bc67a; }
     .lh-possible    { color: #ffe066; }
@@ -333,6 +375,11 @@
       <input type="date" id="date-input" />
       <span id="date-badge"></span>
     </div>
+    <div class="divider"></div>
+    <label id="pred-label" title="Show GP-interpolated danger for unmonitored zones">
+      <input type="checkbox" id="pred-toggle" />
+      Interpolated
+    </label>
   </div>
 
   <div id="legend">

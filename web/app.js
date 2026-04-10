@@ -41,6 +41,19 @@ const INITIAL_ZOOM    = 8;
 const INITIAL_PITCH   = 55;
 const INITIAL_BEARING = -20;
 
+// ── GAP ZONES (static, from gap_zones.json) ─────────────────
+const GAP_ZONES = [
+  { id: 'lassen-ca',             name: 'Lassen Volcanic NP',         lon: -121.51, lat: 40.49 },
+  { id: 's-oregon-cascades',     name: 'S. Oregon Cascades',          lon: -122.1,  lat: 42.5  },
+  { id: 'yosemite-high-country', name: 'Yosemite High Country',       lon: -119.5,  lat: 37.8  },
+  { id: 'central-idaho',         name: 'Central Idaho Mtns',          lon: -114.5,  lat: 44.2  },
+  { id: 'northern-nm',           name: 'N. New Mexico High Country',  lon: -105.5,  lat: 36.5  },
+];
+
+function predictionsUrlForDate(date) {
+  return `${R2_BASE}/data/predictions/${date}.json`;
+}
+
 // ── COLOR PALETTES ──────────────────────────────────────────
 const DANGER_COLORS = {
   0: '#888888',
@@ -205,10 +218,12 @@ function sendLutsToWorkers(luts) {
 
 
 // ── STATE ─────────────────────────────────────────────────
-let colorMode    = 'likelihood';
-let activeDate   = '';      // 'YYYY-MM-DD' of currently loaded forecast
-let forecastData = null;    // { date, zones: { "zoneIndex": { "cellId": {...}, zone_name, center_id } } }
-let popup        = null;
+let colorMode         = 'likelihood';
+let activeDate        = '';      // 'YYYY-MM-DD' of currently loaded forecast
+let forecastData      = null;
+let predictionsData   = null;
+let predictionsVisible = false;
+let popup             = null;
 
 // ── DECODE HELPERS ────────────────────────────────────────
 const ASPECTS    = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -408,8 +423,14 @@ map.on('load', async () => {
   // Load today's forecast, build LUTs, add layer
   await loadForecastForDate(null);   // null → load from data/forecast.json
 
+  addPredictionLayer();
   setupInteractions();
   buildCenterSelector();
+
+  // Prediction overlay toggle
+  document.getElementById('pred-toggle').addEventListener('change', (e) => {
+    togglePredictions(e.target.checked);
+  });
 });
 
 // ── FORECAST LOADER ───────────────────────────────────────
@@ -437,6 +458,9 @@ async function loadForecastForDate(date) {
 
     // Push new LUTs to workers
     sendLutsToWorkers(buildLuts(forecastData));
+
+    // Load interpolated predictions for the same date (fails gracefully if not yet available)
+    loadPredictions(activeDate);
 
     if (map.getSource('avi-terrain')) {
       // Source already exists — just swap tile URLs (busts MapLibre's tile cache)
@@ -468,6 +492,150 @@ async function loadForecastForDate(date) {
     // Restore date input to last successful date
     if (activeDate) document.getElementById('date-input').value = activeDate;
   }
+}
+
+// ── INTERPOLATION OVERLAY ─────────────────────────────────
+
+async function loadPredictions(date) {
+  try {
+    const res = await fetch(predictionsUrlForDate(date));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    predictionsData = await res.json();
+  } catch (_) {
+    predictionsData = null;   // not yet available for this date — clear layer
+  }
+  updatePredictionLayer();
+}
+
+function buildPredictionGeoJSON() {
+  if (!predictionsData) return { type: 'FeatureCollection', features: [] };
+  const features = GAP_ZONES.map(zone => {
+    const pred = predictionsData.predictions?.[zone.id];
+    if (!pred) return null;
+    const danger = pred.danger_rounded?.alpine || 0;
+    const unc    = pred.uncertainty?.alpine    || 0;
+    return {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [zone.lon, zone.lat] },
+      properties: {
+        zone_id:    zone.id,
+        zone_name:  zone.name,
+        danger_alpine:    pred.danger_rounded?.alpine         || 0,
+        danger_treeline:  pred.danger_rounded?.treeline       || 0,
+        danger_below:     pred.danger_rounded?.below_treeline || 0,
+        unc_alpine:       parseFloat(unc.toFixed(2)),
+        color:            DANGER_COLORS[danger] || DANGER_COLORS[0],
+        ring_opacity:     parseFloat(Math.max(0.1, 1.0 - unc / 3.0).toFixed(2)),
+      },
+    };
+  }).filter(Boolean);
+  return { type: 'FeatureCollection', features };
+}
+
+function addPredictionLayer() {
+  if (map.getSource('gap-predictions')) return;
+
+  map.addSource('gap-predictions', { type: 'geojson', data: buildPredictionGeoJSON() });
+
+  // Outer glow — uncertainty ring
+  map.addLayer({
+    id: 'gap-ring', type: 'circle', source: 'gap-predictions',
+    layout: { visibility: 'none' },
+    paint: {
+      'circle-radius':          24,
+      'circle-color':           ['get', 'color'],
+      'circle-opacity':         ['*', ['literal', 0.22], ['get', 'ring_opacity']],
+      'circle-stroke-width':    2.5,
+      'circle-stroke-color':    ['get', 'color'],
+      'circle-stroke-opacity':  ['get', 'ring_opacity'],
+    },
+  });
+
+  // Inner dot — danger level
+  map.addLayer({
+    id: 'gap-dot', type: 'circle', source: 'gap-predictions',
+    layout: { visibility: 'none' },
+    paint: {
+      'circle-radius':         10,
+      'circle-color':          ['get', 'color'],
+      'circle-opacity':        0.92,
+      'circle-stroke-width':   1.5,
+      'circle-stroke-color':   '#ffffff',
+      'circle-stroke-opacity': 0.85,
+    },
+  });
+
+  // Zone name label
+  map.addLayer({
+    id: 'gap-label', type: 'symbol', source: 'gap-predictions',
+    layout: {
+      visibility:    'none',
+      'text-field':  ['get', 'zone_name'],
+      'text-size':   11,
+      'text-offset': [0, 1.9],
+      'text-anchor': 'top',
+      'text-font':   ['Open Sans Regular'],
+    },
+    paint: {
+      'text-color':      '#ffffff',
+      'text-halo-color': '#000000',
+      'text-halo-width': 1.5,
+    },
+  });
+
+  map.on('click', 'gap-dot', (e) => {
+    if (orbitControl?._active) return;
+    showPredictionPopup(e.lngLat, e.features[0].properties);
+    e.stopPropagation();
+  });
+  map.on('mouseenter', 'gap-dot', () => { map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', 'gap-dot', () => { map.getCanvas().style.cursor = 'crosshair'; });
+}
+
+function updatePredictionLayer() {
+  if (!map.getSource('gap-predictions')) return;
+  map.getSource('gap-predictions').setData(buildPredictionGeoJSON());
+}
+
+function togglePredictions(visible) {
+  predictionsVisible = visible;
+  const vis = visible ? 'visible' : 'none';
+  ['gap-ring', 'gap-dot', 'gap-label'].forEach(id => {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+  });
+}
+
+function showPredictionPopup(lngLat, props) {
+  if (popup) popup.remove();
+  const names = ['—', 'Low', 'Moderate', 'Considerable', 'High', 'Extreme'];
+  const dot = (d) =>
+    `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;
+      background:${DANGER_COLORS[d]||'#888'};margin-right:5px;vertical-align:middle"></span>`;
+
+  popup = new mapboxgl.Popup({
+    closeButton: true, maxWidth: '300px',
+    anchor: popupAnchor(lngLat), offset: 12,
+  }).setLngLat(lngLat).setHTML(`
+    <div class="popup-header">
+      <div class="popup-center">Interpolated</div>
+      <div class="popup-zone">${props.zone_name}</div>
+    </div>
+    <div class="popup-body">
+      <table class="pred-table">
+        <tr><th>Band</th><th>Danger</th><th>±</th></tr>
+        <tr><td>Alpine</td>
+          <td>${dot(props.danger_alpine)}${names[props.danger_alpine]||'—'}</td>
+          <td>±${Number(props.unc_alpine).toFixed(1)}</td></tr>
+        <tr><td>Treeline</td>
+          <td>${dot(props.danger_treeline)}${names[props.danger_treeline]||'—'}</td>
+          <td>—</td></tr>
+        <tr><td>Below</td>
+          <td>${dot(props.danger_below)}${names[props.danger_below]||'—'}</td>
+          <td>—</td></tr>
+      </table>
+      <p class="popup-model-note">GP baseline · experimental</p>
+    </div>
+  `).addTo(map);
 }
 
 // ── CLICK → DECODE IDENTITY TILE ─────────────────────────
