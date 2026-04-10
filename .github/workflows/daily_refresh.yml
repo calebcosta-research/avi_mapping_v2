@@ -42,22 +42,7 @@ jobs:
         run: |
           DATE=$(python -c "import json; print(json.load(open('web/data/forecast.json'))['date'])")
           python interpolation/scripts/gp_baseline.py --date "${DATE}" || true
-          python - "$DATE" <<'PYEOF'
-import boto3, json, os, sys
-from botocore.config import Config
-date = sys.argv[1]
-pred = f"interpolation/data/predictions/{date}.json"
-if not os.path.exists(pred):
-    print(f"No predictions file for {date} — skipping upload"); sys.exit(0)
-s3 = boto3.client('s3',
-    endpoint_url=f'https://{os.environ["R2_ACCOUNT_ID"]}.r2.cloudflarestorage.com',
-    aws_access_key_id=os.environ['R2_ACCESS_KEY'],
-    aws_secret_access_key=os.environ['R2_SECRET_KEY'],
-    config=Config(signature_version='s3v4'), region_name='auto')
-s3.upload_file(pred, os.environ['R2_BUCKET'], f'data/predictions/{date}.json',
-    ExtraArgs={'ContentType': 'application/json', 'CacheControl': 'public, max-age=86400'})
-print(f'Uploaded predictions for {date}')
-PYEOF
+          python interpolation/scripts/upload_predictions.py "${DATE}"
         env:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY }}
