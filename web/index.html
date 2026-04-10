@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avalanche Forecast Map</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script>window.mapboxgl = maplibregl;</script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #111; color: #fff; }
+
+    #map { position: absolute; inset: 0; }
+
+    /* ── Top bar ───────────────────────────────────────────────────── */
+    #topbar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 52px;
+      background: rgba(15, 15, 20, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      z-index: 10;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    #topbar h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .divider { width: 1px; height: 24px; background: rgba(255,255,255,0.15); }
+
+    /* Layer toggle button */
+    #layer-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+      color: #ccc;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    #layer-toggle:hover,
+    #problems-only-toggle:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+    #layer-toggle.active {
+      background: rgba(230, 80, 50, 0.25);
+      border-color: rgba(230, 80, 50, 0.6);
+      color: #ff8a70;
+    }
+
+    #problems-only-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+      color: #ccc;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    #problems-only-toggle.active {
+      background: rgba(230, 80, 50, 0.25);
+      border-color: rgba(230, 80, 50, 0.6);
+      color: #ff8a70;
+    }
+
+    .toggle-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #555;
+      transition: background 0.2s;
+    }
+    #layer-toggle.active .toggle-dot { background: #ff5533; }
+
+    /* Color mode selector */
+    #color-mode,
+    #base-layer-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #aaa;
+    }
+    #color-mode select,
+    #base-layer-selector select {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #ddd;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* Center selector */
+    #center-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #aaa;
+    }
+    #center-selector select {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #ddd;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    #center-selector select:hover {
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(255,255,255,0.28);
+    }
+
+    /* Date selector */
+    #date-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #aaa;
+      margin-left: auto;
+    }
+    #date-input {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #ddd;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #date-input:hover {
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(255,255,255,0.28);
+    }
+    #date-input::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
+    #date-badge {
+      font-size: 11px;
+      color: #666;
+      white-space: nowrap;
+    }
+
+    /* ── Legend ────────────────────────────────────────────────────── */
+    #legend {
+      position: absolute;
+      bottom: 36px; left: 16px;
+      background: rgba(15,15,20,0.88);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px 14px;
+      z-index: 10;
+      min-width: 160px;
+      display: none;
+    }
+    #legend.visible { display: block; }
+    #legend h3 { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+    .legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #ccc; }
+    .legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+    /* ── Popup ─────────────────────────────────────────────────────── */
+    .mapboxgl-popup-content,
+    .maplibregl-popup-content {
+      background: rgba(15,15,20,0.95) !important;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      border-radius: 12px !important;
+      padding: 0 !important;
+      color: #fff;
+      min-width: 260px;
+      max-width: 320px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+    }
+    .mapboxgl-popup-tip,
+    .maplibregl-popup-tip { display: none !important; }
+    .mapboxgl-popup-close-button,
+    .maplibregl-popup-close-button {
+      color: #888 !important;
+      font-size: 18px !important;
+      padding: 8px 12px !important;
+      line-height: 1 !important;
+    }
+    .mapboxgl-popup-close-button:hover,
+    .maplibregl-popup-close-button:hover { color: #fff !important; background: none !important; }
+
+    .popup-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .popup-center { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .popup-zone { font-size: 14px; font-weight: 600; color: #fff; }
+
+    .popup-danger-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .danger-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .danger-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .popup-elev-aspect { font-size: 12px; color: #aaa; }
+
+    .popup-body { padding: 10px 16px 14px; }
+    .popup-no-problem { font-size: 12px; color: #666; font-style: italic; }
+
+    .problem-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .problem-card:last-child { margin-bottom: 0; }
+    .problem-type { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+    .problem-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+    .meta-item { font-size: 11px; color: #aaa; }
+    .meta-item span { color: #ddd; font-weight: 500; }
+
+    .popup-bottom-line {
+      padding: 8px 16px 12px;
+      font-size: 11px;
+      color: #777;
+      line-height: 1.5;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ── Navigation controls (zoom, compass, orbit) ───────────── */
+    .maplibregl-ctrl-group button,
+    .maplibregl-ctrl-group button.maplibregl-ctrl-zoom-in,
+    .maplibregl-ctrl-group button.maplibregl-ctrl-zoom-out,
+    .maplibregl-ctrl-group button.maplibregl-ctrl-compass {
+      width: 40px !important;
+      height: 40px !important;
+    }
+    .maplibregl-ctrl-compass .maplibregl-ctrl-icon,
+    .maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon,
+    .maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon {
+      background-size: 22px 22px !important;
+    }
+
+    /* Orbit control button */
+    .orbit-btn {
+      width: 40px !important;
+      height: 40px !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+    .orbit-btn svg { display: block; }
+    .orbit-btn.active,
+    .orbit-btn.active:hover {
+      background: rgba(100, 180, 255, 0.25) !important;
+      color: #7dd3fc !important;
+    }
+
+    /* Likelihood color coding */
+    .lh-unlikely    { color: #7bc67a; }
+    .lh-possible    { color: #ffe066; }
+    .lh-likely      { color: #f5a623; }
+    .lh-very-likely { color: #d0021b; }
+    .lh-almost-certain { color: #000; background: #d0021b; padding: 1px 5px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <div id="topbar">
+    <h1>AviCast</h1>
+    <div class="divider"></div>
+    <div id="base-layer-selector">
+      Map Type
+      <select id="base-layer-select">
+        <option value="mapbox-satellite">Satellite (Mapbox)</option>
+        <option value="esri-satellite">Satellite (ESRI)</option>
+        <option value="open-topo">Topo</option>
+        <option value="osm">Street Map</option>
+      </select>
+    </div>
+    <div class="divider"></div>
+    <div class="color-mode" id="color-mode">
+      Forecast Type
+      <select id="color-select">
+        <option value="danger">Danger Level</option>
+        <option value="problem">Problem Type</option>
+        <option value="likelihood" selected>Likelihood</option>
+      </select>
+    </div>
+    <div class="divider"></div>
+    <div id="center-selector">
+      Avalanche Center Location
+      <select id="center-select">
+        <option value="">All</option>
+      </select>
+    </div>
+    <div class="divider"></div>
+    <div id="date-selector">
+      Date
+      <input type="date" id="date-input" />
+      <span id="date-badge"></span>
+    </div>
+  </div>
+
+  <div id="legend">
+    <h3 id="legend-title">Danger Level</h3>
+    <div id="legend-items"></div>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
