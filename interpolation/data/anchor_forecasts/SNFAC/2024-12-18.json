@@ -1,0 +1,52 @@
+{
+  "date": "2024-12-18",
+  "center_id": "SNFAC",
+  "source": "extract",
+  "zones": {
+    "2907": {
+      "zone_name": "Banner Summit",
+      "danger": {
+        "alpine": 0,
+        "treeline": 0,
+        "below_treeline": 0
+      },
+      "problems": []
+    },
+    "2904": {
+      "zone_name": "Galena Summit & Eastern Mtns",
+      "danger": {
+        "alpine": 0,
+        "treeline": 0,
+        "below_treeline": 0
+      },
+      "problems": []
+    },
+    "2906": {
+      "zone_name": "Sawtooth & Western Smoky Mtns",
+      "danger": {
+        "alpine": 0,
+        "treeline": 0,
+        "below_treeline": 0
+      },
+      "problems": []
+    },
+    "2905": {
+      "zone_name": "Soldier & Wood River Valley Mtns",
+      "danger": {
+        "alpine": 0,
+        "treeline": 0,
+        "below_treeline": 0
+      },
+      "problems": []
+    }
+  },
+  "center_summary": {
+    "danger_max": {
+      "alpine": 0,
+      "treeline": 0,
+      "below_treeline": 0
+    },
+    "active_problem_types": [],
+    "problem_likelihood_max": {}
+  }
+}
