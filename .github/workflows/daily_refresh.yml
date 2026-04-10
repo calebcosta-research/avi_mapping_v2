@@ -8,7 +8,7 @@ on:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repo
@@ -21,7 +21,7 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        run: pip install requests boto3
+        run: pip install requests boto3 scikit-learn numpy
 
       - name: Fetch forecasts and build forecast.json
         run: python forecasts/scripts/daily_refresh.py --upload
@@ -31,10 +31,45 @@ jobs:
           R2_SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
           R2_BUCKET:     ${{ secrets.R2_BUCKET }}
 
-      - name: Commit forecast.json to repo (optional backup)
+      - name: Extract anchor forecasts for interpolation
+        run: |
+          DATE=$(python -c "import json; print(json.load(open('web/data/forecast.json'))['date'])")
+          mkdir -p web/data/forecasts
+          cp web/data/forecast.json "web/data/forecasts/${DATE}.json"
+          python interpolation/scripts/fetch_anchor_forecasts.py --mode extract --date "${DATE}"
+
+      - name: Run GP baseline predictions and upload to R2
+        run: |
+          DATE=$(python -c "import json; print(json.load(open('web/data/forecast.json'))['date'])")
+          python interpolation/scripts/gp_baseline.py --date "${DATE}" || true
+          python - "$DATE" <<'PYEOF'
+import boto3, json, os, sys
+from botocore.config import Config
+date = sys.argv[1]
+pred = f"interpolation/data/predictions/{date}.json"
+if not os.path.exists(pred):
+    print(f"No predictions file for {date} — skipping upload"); sys.exit(0)
+s3 = boto3.client('s3',
+    endpoint_url=f'https://{os.environ["R2_ACCOUNT_ID"]}.r2.cloudflarestorage.com',
+    aws_access_key_id=os.environ['R2_ACCESS_KEY'],
+    aws_secret_access_key=os.environ['R2_SECRET_KEY'],
+    config=Config(signature_version='s3v4'), region_name='auto')
+s3.upload_file(pred, os.environ['R2_BUCKET'], f'data/predictions/{date}.json',
+    ExtraArgs={'ContentType': 'application/json', 'CacheControl': 'public, max-age=86400'})
+print(f'Uploaded predictions for {date}')
+PYEOF
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY }}
+          R2_SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
+          R2_BUCKET:     ${{ secrets.R2_BUCKET }}
+
+      - name: Commit forecast data to repo
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add web/data/forecast.json
+          git add interpolation/data/anchor_forecasts/ 2>/dev/null || true
+          git add interpolation/data/predictions/ 2>/dev/null || true
           git diff --staged --quiet || git commit -m "chore: daily forecast update $(date -u +%Y-%m-%d)"
           git push

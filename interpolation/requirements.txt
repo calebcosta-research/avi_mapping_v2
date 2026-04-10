@@ -1,0 +1,21 @@
+# Interpolation engine dependencies
+# Install with: pip install -r interpolation/requirements.txt
+
+# Spatial / geometry
+shapely>=2.0
+scipy>=1.11
+numpy>=1.25
+
+# HTTP
+requests>=2.31
+
+# Data
+pandas>=2.0
+
+# Phase 2 — probabilistic model (install when ready)
+# pymc>=5.0
+# arviz>=0.17
+# pytensor>=2.18
+
+# GP baseline model
+scikit-learn>=1.3

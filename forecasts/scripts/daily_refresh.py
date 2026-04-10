@@ -123,6 +123,28 @@ def upload_to_r2() -> None:
     )
     log.info("  Uploaded forecast.json to R2 bucket '%s'", bucket)
 
+    # Also archive a dated copy so historical date picker works
+    import json as _json
+    try:
+        with open(forecast_path) as _f:
+            _forecast_date = _json.load(_f).get("date")
+    except Exception:
+        _forecast_date = None
+
+    if _forecast_date:
+        archive_key = f"data/forecasts/{_forecast_date}.json"
+        log.info("  Archiving forecast as %s...", archive_key)
+        s3.upload_file(
+            str(forecast_path),
+            bucket,
+            archive_key,
+            ExtraArgs={
+                "ContentType": "application/json",
+                "CacheControl": "public, max-age=86400",  # 24 h — historical never changes
+            },
+        )
+        log.info("  Archived forecast for %s", _forecast_date)
+
 
 def upload_tiles_to_r2(tile_type: str = "identity") -> None:
     """

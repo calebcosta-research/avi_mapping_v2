@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Avalanche Forecast Map</title>
 
-  <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script>window.mapboxgl = maplibregl;</script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -95,14 +96,16 @@
     #layer-toggle.active .toggle-dot { background: #ff5533; }
 
     /* Color mode selector */
-    #color-mode {
+    #color-mode,
+    #base-layer-selector {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 12px;
       color: #aaa;
     }
-    #color-mode select {
+    #color-mode select,
+    #base-layer-selector select {
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.15);
       color: #ddd;
@@ -112,11 +115,56 @@
       cursor: pointer;
     }
 
-    /* Date badge */
-    #date-badge {
-      margin-left: auto;
+    /* Center selector */
+    #center-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-size: 12px;
-      color: #888;
+      color: #aaa;
+    }
+    #center-selector select {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #ddd;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    #center-selector select:hover {
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(255,255,255,0.28);
+    }
+
+    /* Date selector */
+    #date-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #aaa;
+      margin-left: auto;
+    }
+    #date-input {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #ddd;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #date-input:hover {
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(255,255,255,0.28);
+    }
+    #date-input::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
+    #date-badge {
+      font-size: 11px;
+      color: #666;
+      white-space: nowrap;
     }
 
     /* ── Legend ────────────────────────────────────────────────────── */
@@ -138,7 +186,8 @@
     .legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
 
     /* ── Popup ─────────────────────────────────────────────────────── */
-    .mapboxgl-popup-content {
+    .mapboxgl-popup-content,
+    .maplibregl-popup-content {
       background: rgba(15,15,20,0.95) !important;
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255,255,255,0.1) !important;
@@ -149,14 +198,17 @@
       max-width: 320px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
     }
-    .mapboxgl-popup-tip { display: none !important; }
-    .mapboxgl-popup-close-button {
+    .mapboxgl-popup-tip,
+    .maplibregl-popup-tip { display: none !important; }
+    .mapboxgl-popup-close-button,
+    .maplibregl-popup-close-button {
       color: #888 !important;
       font-size: 18px !important;
       padding: 8px 12px !important;
       line-height: 1 !important;
     }
-    .mapboxgl-popup-close-button:hover { color: #fff !important; background: none !important; }
+    .mapboxgl-popup-close-button:hover,
+    .maplibregl-popup-close-button:hover { color: #fff !important; background: none !important; }
 
     .popup-header {
       padding: 14px 16px 10px;
@@ -208,6 +260,77 @@
       border-top: 1px solid rgba(255,255,255,0.06);
     }
 
+    /* ── Navigation controls (zoom, compass, orbit) ───────────── */
+    .maplibregl-ctrl-group button,
+    .maplibregl-ctrl-group button.maplibregl-ctrl-zoom-in,
+    .maplibregl-ctrl-group button.maplibregl-ctrl-zoom-out,
+    .maplibregl-ctrl-group button.maplibregl-ctrl-compass {
+      width: 40px !important;
+      height: 40px !important;
+    }
+    .maplibregl-ctrl-compass .maplibregl-ctrl-icon,
+    .maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon,
+    .maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon {
+      background-size: 22px 22px !important;
+    }
+
+    /* Orbit control button */
+    .orbit-btn {
+      width: 40px !important;
+      height: 40px !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+    .orbit-btn svg { display: block; }
+    .orbit-btn.active,
+    .orbit-btn.active:hover {
+      background: rgba(100, 180, 255, 0.25) !important;
+      color: #7dd3fc !important;
+    }
+
+    /* Interpolated zones toggle */
+    #pred-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #aaa;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    #pred-label:hover { color: #ddd; }
+    #pred-toggle { accent-color: #64b4ff; cursor: pointer; }
+
+    /* Prediction popup table */
+    .pred-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .pred-table th {
+      color: #666;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      padding: 0 6px 6px 0;
+      text-align: left;
+    }
+    .pred-table td {
+      padding: 4px 6px 4px 0;
+      color: #ccc;
+      vertical-align: middle;
+    }
+    .popup-model-note {
+      font-size: 10px;
+      color: #555;
+      font-style: italic;
+      margin-top: 6px;
+    }
+
     /* Likelihood color coding */
     .lh-unlikely    { color: #7bc67a; }
     .lh-possible    { color: #ffe066; }
@@ -219,25 +342,44 @@
 <body>
 
   <div id="topbar">
-    <h1>⛰ Avalanche Forecast</h1>
+    <h1>AviCast</h1>
     <div class="divider"></div>
-    <button id="layer-toggle">
-      <span class="toggle-dot"></span>
-      Avalanche Advisory
-    </button>
-    <button id="problems-only-toggle" style="display:none">
-      <span class="toggle-dot"></span>
-      Active Problems Only
-    </button>
+    <div id="base-layer-selector">
+      Map Type
+      <select id="base-layer-select">
+        <option value="mapbox-satellite">Satellite (Mapbox)</option>
+        <option value="esri-satellite">Satellite (ESRI)</option>
+        <option value="open-topo">Topo</option>
+        <option value="osm">Street Map</option>
+      </select>
+    </div>
+    <div class="divider"></div>
     <div class="color-mode" id="color-mode">
-      Color by
+      Forecast Type
       <select id="color-select">
         <option value="danger">Danger Level</option>
         <option value="problem">Problem Type</option>
-        <option value="likelihood">Likelihood</option>
+        <option value="likelihood" selected>Likelihood</option>
       </select>
     </div>
-    <span id="date-badge">Loading...</span>
+    <div class="divider"></div>
+    <div id="center-selector">
+      Avalanche Center Location
+      <select id="center-select">
+        <option value="">All</option>
+      </select>
+    </div>
+    <div class="divider"></div>
+    <div id="date-selector">
+      Date
+      <input type="date" id="date-input" />
+      <span id="date-badge"></span>
+    </div>
+    <div class="divider"></div>
+    <label id="pred-label" title="Show GP-interpolated danger for unmonitored zones">
+      <input type="checkbox" id="pred-toggle" />
+      Interpolated
+    </label>
   </div>
 
   <div id="legend">
