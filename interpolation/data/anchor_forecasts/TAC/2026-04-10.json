@@ -1,0 +1,25 @@
+{
+  "date": "2026-04-10",
+  "center_id": "TAC",
+  "source": "extract",
+  "zones": {
+    "490": {
+      "zone_name": "Northern New Mexico",
+      "danger": {
+        "alpine": 0,
+        "treeline": 0,
+        "below_treeline": 0
+      },
+      "problems": []
+    }
+  },
+  "center_summary": {
+    "danger_max": {
+      "alpine": 0,
+      "treeline": 0,
+      "below_treeline": 0
+    },
+    "active_problem_types": [],
+    "problem_likelihood_max": {}
+  }
+}
