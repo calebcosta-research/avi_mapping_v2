@@ -56,7 +56,6 @@ log = logging.getLogger(__name__)
 sys.path.insert(0, str(Path(__file__).parent))
 from forecast_parser import ForecastClient, AvalancheForecast
 
-OUT_DIR  = Path(__file__).parent.parent / "output"
 DATA_DIR = Path(__file__).parent.parent.parent / "web" / "data"
 
 DANGER_COLORS = {
@@ -96,18 +95,8 @@ def build_forecast_json(dry_run: bool = False) -> dict:
     # Build reverse: index (str) → zone_id
     index_to_zid = {str(v["index"]): k for k, v in zone_lookup.items()}
 
-    # Load terrain index to get zone/center mapping
-    terrain_path = OUT_DIR / "terrain_index.geojson"
-    with open(terrain_path) as f:
-        terrain = json.load(f)
-
-    # Collect unique (center_id, zone_id) pairs
-    zone_pairs = {}
-    for feat in terrain["features"]:
-        p = feat["properties"]
-        zid = str(p["zone_id"])
-        if zid not in zone_pairs:
-            zone_pairs[zid] = p["center_id"]
+    # Derive zone/center mapping directly from zone_lookup (avoids needing terrain_index.geojson)
+    zone_pairs = {zid: meta["center_id"] for zid, meta in zone_lookup.items()}
 
     log.info("Fetching forecasts for %d zones...", len(zone_pairs))
 
