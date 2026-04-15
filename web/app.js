@@ -512,8 +512,7 @@ async function loadForecastForDate(date) {
 
 // ── INTERPOLATION OVERLAY ─────────────────────────────────
 
-// Colour expression reused in both fill and outline layers.
-// Reads danger_display (int 1-5) directly from feature properties.
+// Colour expression — reads danger_display (int 1-5) directly.
 const DANGER_MATCH_EXPR = [
   'match', ['get', 'danger_display'],
   1, '#5db85c',
@@ -521,7 +520,7 @@ const DANGER_MATCH_EXPR = [
   3, '#f5a623',
   4, '#d0021b',
   5, '#000000',
-  /* default */ '#888888',
+  '#888888',
 ];
 
 async function loadPredictions(date) {
@@ -537,45 +536,76 @@ async function loadPredictions(date) {
   if (predictionsVisible) togglePredictions(true);
 }
 
-// Returns the raw spatial_grid FeatureCollection for the active zone,
-// or an empty FeatureCollection when data isn't loaded yet.
+// Raw polygon FeatureCollection for the active zone.
 function buildActiveGridGeoJSON() {
   const pred = predictionsData?.predictions?.[activeGridZone];
   return pred?.spatial_grid ?? { type: 'FeatureCollection', features: [] };
 }
 
+// Point FeatureCollection (cell centroids) — used for the circle layer which
+// renders reliably over terrain in MapLibre v3 (fill layers can silently fail).
+function buildActiveGridPoints() {
+  const pred = predictionsData?.predictions?.[activeGridZone];
+  if (!pred?.spatial_grid?.features?.length)
+    return { type: 'FeatureCollection', features: [] };
+
+  return {
+    type: 'FeatureCollection',
+    features: pred.spatial_grid.features.map(f => {
+      const ring = f.geometry.coordinates[0];
+      return {
+        type:       'Feature',
+        geometry:   { type: 'Point', coordinates: [
+          (ring[0][0] + ring[2][0]) / 2,
+          (ring[0][1] + ring[2][1]) / 2,
+        ]},
+        properties: f.properties,
+      };
+    }),
+  };
+}
+
 function addPredictionLayer() {
   if (map.getSource('gap-grid')) return;
 
+  // ── Polygon source + fill/outline (works in most browsers) ──
   map.addSource('gap-grid', { type: 'geojson', data: buildActiveGridGeoJSON() });
 
-  // Start fully transparent; opacity is set by togglePredictions().
-  // Using paint-property opacity rather than layout visibility avoids a
-  // known MapLibre v3 terrain-mode issue where setLayoutProperty('visibility')
-  // can silently fail to trigger a re-render on fill layers.
   map.addLayer({
-    id: 'gap-grid-fill',
-    type: 'fill',
-    source: 'gap-grid',
-    paint: {
-      'fill-color':   DANGER_MATCH_EXPR,
-      'fill-opacity': 0,
-    },
+    id: 'gap-grid-fill', type: 'fill', source: 'gap-grid',
+    paint: { 'fill-color': DANGER_MATCH_EXPR, 'fill-opacity': 0 },
   });
   map.addLayer({
-    id: 'gap-grid-outline',
-    type: 'line',
-    source: 'gap-grid',
+    id: 'gap-grid-outline', type: 'line', source: 'gap-grid',
+    paint: { 'line-color': '#ffffff', 'line-opacity': 0, 'line-width': 0.8 },
+  });
+
+  // ── Point source + circle layer (terrain-proof fallback) ──
+  map.addSource('gap-grid-pts', { type: 'geojson', data: buildActiveGridPoints() });
+
+  map.addLayer({
+    id: 'gap-grid-circles', type: 'circle', source: 'gap-grid-pts',
     paint: {
-      'line-color':   '#ffffff',
-      'line-opacity': 0,
-      'line-width':   0.8,
+      'circle-color':          DANGER_MATCH_EXPR,
+      'circle-opacity':        0,
+      // Scale radius with zoom so circles snugly tile each ~1.5 km cell
+      'circle-radius': ['interpolate', ['linear'], ['zoom'],
+        8,  3,
+        9,  5,
+        10, 9,
+        11, 17,
+        12, 34,
+      ],
+      'circle-stroke-width':   0.8,
+      'circle-stroke-color':   '#000000',
+      'circle-stroke-opacity': 0,
     },
   });
 
   const dangerLabel = d => ['No Rating','Low','Moderate','Considerable','High','Extreme'][d] || '?';
 
-  map.on('click', 'gap-grid-fill', (e) => {
+  // Click popup on circles (always interactive even when fill doesn't render)
+  const onGridClick = (e) => {
     if (orbitControl?._active) return;
     const p    = e.features[0].properties;
     const zone = GAP_ZONES.find(z => z.id === activeGridZone);
@@ -592,23 +622,31 @@ function addPredictionLayer() {
         <div class="popup-model-note">GP baseline interpolation</div>`)
       .addTo(map);
     e.stopPropagation();
-  });
-  map.on('mouseenter', 'gap-grid-fill', () => { map.getCanvas().style.cursor = 'pointer'; });
-  map.on('mouseleave', 'gap-grid-fill', () => { map.getCanvas().style.cursor = 'crosshair'; });
+  };
+  map.on('click',      'gap-grid-circles', onGridClick);
+  map.on('click',      'gap-grid-fill',    onGridClick);
+  map.on('mouseenter', 'gap-grid-circles', () => { map.getCanvas().style.cursor = 'pointer';    });
+  map.on('mouseleave', 'gap-grid-circles', () => { map.getCanvas().style.cursor = 'crosshair';  });
+  map.on('mouseenter', 'gap-grid-fill',    () => { map.getCanvas().style.cursor = 'pointer';    });
+  map.on('mouseleave', 'gap-grid-fill',    () => { map.getCanvas().style.cursor = 'crosshair';  });
 }
 
 function updatePredictionLayer() {
-  const src = map.getSource('gap-grid');
-  if (src) src.setData(buildActiveGridGeoJSON());
+  const poly = map.getSource('gap-grid');
+  if (poly) poly.setData(buildActiveGridGeoJSON());
+  const pts  = map.getSource('gap-grid-pts');
+  if (pts)  pts.setData(buildActiveGridPoints());
 }
 
 function togglePredictions(visible) {
   predictionsVisible = visible;
-  // Use setPaintProperty (not setLayoutProperty) — more reliable with terrain.
-  if (map.getLayer('gap-grid-fill')) {
-    map.setPaintProperty('gap-grid-fill',    'fill-opacity', visible ? 0.82 : 0);
-    map.setPaintProperty('gap-grid-outline', 'line-opacity', visible ? 0.55 : 0);
-  }
+  const show = (id, prop, on, off) => {
+    if (map.getLayer(id)) map.setPaintProperty(id, prop, visible ? on : off);
+  };
+  show('gap-grid-fill',    'fill-opacity',          0.72, 0);
+  show('gap-grid-outline', 'line-opacity',           0.45, 0);
+  show('gap-grid-circles', 'circle-opacity',         0.85, 0);
+  show('gap-grid-circles', 'circle-stroke-opacity',  0.5,  0);
 }
 
 function showPredictionPopup(lngLat, props) {
