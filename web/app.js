@@ -512,54 +512,66 @@ async function loadForecastForDate(date) {
 
 // ── INTERPOLATION OVERLAY ─────────────────────────────────
 
+// Colour expression reused in both fill and outline layers.
+// Reads danger_display (int 1-5) directly from feature properties.
+const DANGER_MATCH_EXPR = [
+  'match', ['get', 'danger_display'],
+  1, '#5db85c',
+  2, '#fff200',
+  3, '#f5a623',
+  4, '#d0021b',
+  5, '#000000',
+  /* default */ '#888888',
+];
+
 async function loadPredictions(date) {
   try {
     const res = await fetch(predictionsUrlForDate(date));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     predictionsData = await res.json();
-    const zones = Object.keys(predictionsData.predictions || {});
-    const cells = predictionsData.predictions?.['lassen-ca']?.spatial_grid?.features?.length ?? 0;
-    console.log(`[predictions] loaded for ${date}: zones=${zones}, lassen cells=${cells}`);
   } catch (err) {
-    console.error('[predictions] fetch failed:', err);
+    console.warn('[predictions] fetch failed for', date, err.message);
     predictionsData = null;
   }
   updatePredictionLayer();
-  // If predictions are already toggled visible, re-apply visibility after data loads
   if (predictionsVisible) togglePredictions(true);
 }
 
+// Returns the raw spatial_grid FeatureCollection for the active zone,
+// or an empty FeatureCollection when data isn't loaded yet.
 function buildActiveGridGeoJSON() {
   const pred = predictionsData?.predictions?.[activeGridZone];
-  if (!pred?.spatial_grid) return { type: 'FeatureCollection', features: [] };
-  const features = pred.spatial_grid.features.map(f => {
-    const d = f.properties.danger_display || 0;
-    return { ...f, properties: { ...f.properties, color: DANGER_COLORS[d] || DANGER_COLORS[0] } };
-  });
-  return { type: 'FeatureCollection', features };
+  return pred?.spatial_grid ?? { type: 'FeatureCollection', features: [] };
 }
 
 function addPredictionLayer() {
   if (map.getSource('gap-grid')) return;
-  console.log('[predictions] addPredictionLayer called');
 
-  try {
-    map.addSource('gap-grid', { type: 'geojson', data: buildActiveGridGeoJSON() });
-  } catch (e) { console.error('[predictions] addSource failed:', e); return; }
+  map.addSource('gap-grid', { type: 'geojson', data: buildActiveGridGeoJSON() });
 
-  try {
-    map.addLayer({
-      id: 'gap-grid-fill', type: 'fill', source: 'gap-grid',
-      layout: { visibility: 'none' },
-      paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.72 },
-    });
-    map.addLayer({
-      id: 'gap-grid-outline', type: 'line', source: 'gap-grid',
-      layout: { visibility: 'none' },
-      paint: { 'line-color': '#000', 'line-opacity': 0.15, 'line-width': 0.4 },
-    });
-    console.log('[predictions] layers added OK');
-  } catch (e) { console.error('[predictions] addLayer failed:', e); }
+  // Start fully transparent; opacity is set by togglePredictions().
+  // Using paint-property opacity rather than layout visibility avoids a
+  // known MapLibre v3 terrain-mode issue where setLayoutProperty('visibility')
+  // can silently fail to trigger a re-render on fill layers.
+  map.addLayer({
+    id: 'gap-grid-fill',
+    type: 'fill',
+    source: 'gap-grid',
+    paint: {
+      'fill-color':   DANGER_MATCH_EXPR,
+      'fill-opacity': 0,
+    },
+  });
+  map.addLayer({
+    id: 'gap-grid-outline',
+    type: 'line',
+    source: 'gap-grid',
+    paint: {
+      'line-color':   '#ffffff',
+      'line-opacity': 0,
+      'line-width':   0.8,
+    },
+  });
 
   const dangerLabel = d => ['No Rating','Low','Moderate','Considerable','High','Extreme'][d] || '?';
 
@@ -586,18 +598,17 @@ function addPredictionLayer() {
 }
 
 function updatePredictionLayer() {
-  if (map.getSource('gap-grid'))
-    map.getSource('gap-grid').setData(buildActiveGridGeoJSON());
+  const src = map.getSource('gap-grid');
+  if (src) src.setData(buildActiveGridGeoJSON());
 }
 
 function togglePredictions(visible) {
   predictionsVisible = visible;
-  const vis = visible ? 'visible' : 'none';
-  ['gap-grid-fill', 'gap-grid-outline'].forEach(id => {
-    const layer = map.getLayer(id);
-    console.log(`[predictions] toggle ${id} → ${vis}, layer exists: ${!!layer}`);
-    if (layer) map.setLayoutProperty(id, 'visibility', vis);
-  });
+  // Use setPaintProperty (not setLayoutProperty) — more reliable with terrain.
+  if (map.getLayer('gap-grid-fill')) {
+    map.setPaintProperty('gap-grid-fill',    'fill-opacity', visible ? 0.82 : 0);
+    map.setPaintProperty('gap-grid-outline', 'line-opacity', visible ? 0.55 : 0);
+  }
 }
 
 function showPredictionPopup(lngLat, props) {
