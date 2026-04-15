@@ -289,6 +289,22 @@
       color: #7dd3fc !important;
     }
 
+    /* Gap zone selector (shown alongside Interpolated checkbox) */
+    #gap-zone-select {
+      display: none;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #ddd;
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    #gap-zone-select:hover { background: rgba(255,255,255,0.13); }
+    #gap-zone-select option { background: #1a1a2e; color: #ddd; }
+    #gap-zone-select.visible { display: block; }
+
     /* Interpolated zones toggle */
     #pred-label {
       display: flex;
@@ -380,6 +396,10 @@
       <input type="checkbox" id="pred-toggle" />
       Interpolated
     </label>
+    <select id="gap-zone-select" title="Choose interpolation zone">
+      <option value="lassen-ca">Lassen Volcanic NP</option>
+      <option value="yosemite-high-country">Yosemite NP</option>
+    </select>
   </div>
 
   <div id="legend">

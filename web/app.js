@@ -41,13 +41,18 @@ const INITIAL_ZOOM    = 8;
 const INITIAL_PITCH   = 55;
 const INITIAL_BEARING = -20;
 
-// ── GAP ZONES (static, from gap_zones.json) ─────────────────
+// ── GAP ZONES ────────────────────────────────────────────────
 const GAP_ZONES = [
-  { id: 'lassen-ca',             name: 'Lassen Volcanic NP',         lon: -121.51, lat: 40.49 },
-  { id: 's-oregon-cascades',     name: 'S. Oregon Cascades',          lon: -122.1,  lat: 42.5  },
-  { id: 'yosemite-high-country', name: 'Yosemite High Country',       lon: -119.5,  lat: 37.8  },
-  { id: 'central-idaho',         name: 'Central Idaho Mtns',          lon: -114.5,  lat: 44.2  },
-  { id: 'northern-nm',           name: 'N. New Mexico High Country',  lon: -105.5,  lat: 36.5  },
+  {
+    id: 'lassen-ca',
+    name: 'Lassen Volcanic NP',
+    flyTo: { center: [-121.43, 40.47], zoom: 10, pitch: 50, bearing: 0 },
+  },
+  {
+    id: 'yosemite-high-country',
+    name: 'Yosemite National Park',
+    flyTo: { center: [-119.56, 37.85], zoom: 9, pitch: 50, bearing: 0 },
+  },
 ];
 
 function predictionsUrlForDate(date) {
@@ -218,11 +223,12 @@ function sendLutsToWorkers(luts) {
 
 
 // ── STATE ─────────────────────────────────────────────────
-let colorMode         = 'likelihood';
-let activeDate        = '';      // 'YYYY-MM-DD' of currently loaded forecast
-let forecastData      = null;
-let predictionsData   = null;
+let colorMode          = 'likelihood';
+let activeDate         = '';      // 'YYYY-MM-DD' of currently loaded forecast
+let forecastData       = null;
+let predictionsData    = null;
 let predictionsVisible = false;
+let activeGridZone     = 'lassen-ca';
 let popup             = null;
 
 // ── DECODE HELPERS ────────────────────────────────────────
@@ -427,9 +433,19 @@ map.on('load', async () => {
   setupInteractions();
   buildCenterSelector();
 
-  // Prediction overlay toggle
+  // Prediction overlay toggle — also show/hide the zone selector
   document.getElementById('pred-toggle').addEventListener('change', (e) => {
-    togglePredictions(e.target.checked);
+    const on = e.target.checked;
+    togglePredictions(on);
+    document.getElementById('gap-zone-select').classList.toggle('visible', on);
+  });
+
+  // Gap zone selector — fly to zone and swap grid data
+  document.getElementById('gap-zone-select').addEventListener('change', (e) => {
+    activeGridZone = e.target.value;
+    updatePredictionLayer();
+    const zone = GAP_ZONES.find(z => z.id === activeGridZone);
+    if (zone?.flyTo) map.flyTo({ ...zone.flyTo, duration: 1800 });
   });
 });
 
@@ -507,181 +523,66 @@ async function loadPredictions(date) {
   updatePredictionLayer();
 }
 
-// Zones that have full spatial grid data (boundary polygon interpolation)
-const SPATIAL_GRID_ZONES = new Set(['lassen-ca']);
-
-function buildPredictionGeoJSON() {
-  if (!predictionsData) return { type: 'FeatureCollection', features: [] };
-  // Only include zones WITHOUT a spatial grid as dots
-  const features = GAP_ZONES
-    .filter(zone => !SPATIAL_GRID_ZONES.has(zone.id))
-    .map(zone => {
-      const pred = predictionsData.predictions?.[zone.id];
-      if (!pred) return null;
-      const danger = pred.danger_rounded?.alpine || 0;
-      const unc    = pred.uncertainty?.alpine    || 0;
-      return {
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: [zone.lon, zone.lat] },
-        properties: {
-          zone_id:    zone.id,
-          zone_name:  zone.name,
-          danger_alpine:    pred.danger_rounded?.alpine         || 0,
-          danger_treeline:  pred.danger_rounded?.treeline       || 0,
-          danger_below:     pred.danger_rounded?.below_treeline || 0,
-          unc_alpine:       parseFloat(unc.toFixed(2)),
-          color:            DANGER_COLORS[danger] || DANGER_COLORS[0],
-          ring_opacity:     parseFloat(Math.max(0.1, 1.0 - unc / 3.0).toFixed(2)),
-        },
-      };
-    }).filter(Boolean);
-  return { type: 'FeatureCollection', features };
-}
-
-function buildLassenGridGeoJSON() {
-  const pred = predictionsData?.predictions?.['lassen-ca'];
+function buildActiveGridGeoJSON() {
+  const pred = predictionsData?.predictions?.[activeGridZone];
   if (!pred?.spatial_grid) return { type: 'FeatureCollection', features: [] };
-  // Attach a MapLibre-friendly color property to each cell
   const features = pred.spatial_grid.features.map(f => {
     const d = f.properties.danger_display || 0;
-    return {
-      ...f,
-      properties: {
-        ...f.properties,
-        color: DANGER_COLORS[d] || DANGER_COLORS[0],
-      },
-    };
+    return { ...f, properties: { ...f.properties, color: DANGER_COLORS[d] || DANGER_COLORS[0] } };
   });
   return { type: 'FeatureCollection', features };
 }
 
 function addPredictionLayer() {
-  if (map.getSource('gap-predictions')) return;
+  if (map.getSource('gap-grid')) return;
 
-  // ── Lassen spatial grid (fill polygons inside park boundary) ──
-  map.addSource('lassen-grid', { type: 'geojson', data: buildLassenGridGeoJSON() });
+  map.addSource('gap-grid', { type: 'geojson', data: buildActiveGridGeoJSON() });
 
   map.addLayer({
-    id: 'lassen-grid-fill', type: 'fill', source: 'lassen-grid',
+    id: 'gap-grid-fill', type: 'fill', source: 'gap-grid',
     layout: { visibility: 'none' },
-    paint: {
-      'fill-color':   ['get', 'color'],
-      'fill-opacity': 0.72,
-    },
+    paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.72 },
   });
 
   map.addLayer({
-    id: 'lassen-grid-outline', type: 'line', source: 'lassen-grid',
+    id: 'gap-grid-outline', type: 'line', source: 'gap-grid',
     layout: { visibility: 'none' },
-    paint: {
-      'line-color':   '#000000',
-      'line-opacity': 0.15,
-      'line-width':   0.4,
-    },
+    paint: { 'line-color': '#000', 'line-opacity': 0.15, 'line-width': 0.4 },
   });
 
-  map.on('click', 'lassen-grid-fill', (e) => {
+  const dangerLabel = d => ['No Rating','Low','Moderate','Considerable','High','Extreme'][d] || '?';
+
+  map.on('click', 'gap-grid-fill', (e) => {
     if (orbitControl?._active) return;
-    const p = e.features[0].properties;
-    const dangerLabel = d => ['No Rating','Low','Moderate','Considerable','High','Extreme'][d] || '?';
-    const content = `
-      <strong>Lassen Volcanic NP</strong>
-      <div class="pred-table">
-        <div>Alpine</div><div>${dangerLabel(p.danger_alpine_int)} (${p.danger_alpine?.toFixed(1)})</div>
-        <div>Treeline</div><div>${dangerLabel(p.danger_treeline_int)} (${p.danger_treeline?.toFixed(1)})</div>
-        <div>Below Treeline</div><div>${dangerLabel(p.danger_below_treeline_int)} (${p.danger_below_treeline?.toFixed(1)})</div>
-        <div>Uncertainty (alp)</div><div>±${p.unc_alpine}</div>
-      </div>
-      <div class="popup-model-note">GP baseline interpolation</div>`;
+    const p    = e.features[0].properties;
+    const zone = GAP_ZONES.find(z => z.id === activeGridZone);
     new maplibregl.Popup()
       .setLngLat(e.lngLat)
-      .setHTML(content)
+      .setHTML(`
+        <strong>${zone?.name || activeGridZone}</strong>
+        <div class="pred-table">
+          <div>Alpine</div><div>${dangerLabel(p.danger_alpine_int)} (${parseFloat(p.danger_alpine).toFixed(1)})</div>
+          <div>Treeline</div><div>${dangerLabel(p.danger_treeline_int)} (${parseFloat(p.danger_treeline).toFixed(1)})</div>
+          <div>Below Treeline</div><div>${dangerLabel(p.danger_below_treeline_int)} (${parseFloat(p.danger_below_treeline).toFixed(1)})</div>
+          <div>Uncertainty</div><div>±${p.unc_alpine}</div>
+        </div>
+        <div class="popup-model-note">GP baseline interpolation</div>`)
       .addTo(map);
     e.stopPropagation();
   });
-  map.on('mouseenter', 'lassen-grid-fill', () => { map.getCanvas().style.cursor = 'pointer'; });
-  map.on('mouseleave', 'lassen-grid-fill', () => { map.getCanvas().style.cursor = 'crosshair'; });
-
-  // ── Dot/ring layers for non-grid gap zones ──
-  map.addSource('gap-predictions', { type: 'geojson', data: buildPredictionGeoJSON() });
-
-  // Dark backing circle — ensures dot is always visible against any terrain
-  map.addLayer({
-    id: 'gap-backing', type: 'circle', source: 'gap-predictions',
-    layout: { visibility: 'none' },
-    paint: {
-      'circle-radius':       20,
-      'circle-color':        '#000000',
-      'circle-opacity':      0.55,
-    },
-  });
-
-  // Outer glow — uncertainty ring
-  map.addLayer({
-    id: 'gap-ring', type: 'circle', source: 'gap-predictions',
-    layout: { visibility: 'none' },
-    paint: {
-      'circle-radius':          20,
-      'circle-color':           'transparent',
-      'circle-opacity':         0,
-      'circle-stroke-width':    3,
-      'circle-stroke-color':    ['get', 'color'],
-      'circle-stroke-opacity':  ['get', 'ring_opacity'],
-    },
-  });
-
-  // Inner dot — danger level
-  map.addLayer({
-    id: 'gap-dot', type: 'circle', source: 'gap-predictions',
-    layout: { visibility: 'none' },
-    paint: {
-      'circle-radius':         13,
-      'circle-color':          ['get', 'color'],
-      'circle-opacity':        1.0,
-      'circle-stroke-width':   2,
-      'circle-stroke-color':   '#ffffff',
-      'circle-stroke-opacity': 1.0,
-    },
-  });
-
-  // Zone name label
-  map.addLayer({
-    id: 'gap-label', type: 'symbol', source: 'gap-predictions',
-    layout: {
-      visibility:    'none',
-      'text-field':  ['get', 'zone_name'],
-      'text-size':   11,
-      'text-offset': [0, 1.9],
-      'text-anchor': 'top',
-      'text-font':   ['Open Sans Regular'],
-    },
-    paint: {
-      'text-color':      '#ffffff',
-      'text-halo-color': '#000000',
-      'text-halo-width': 1.5,
-    },
-  });
-
-  map.on('click', 'gap-dot', (e) => {
-    if (orbitControl?._active) return;
-    showPredictionPopup(e.lngLat, e.features[0].properties);
-    e.stopPropagation();
-  });
-  map.on('mouseenter', 'gap-dot', () => { map.getCanvas().style.cursor = 'pointer'; });
-  map.on('mouseleave', 'gap-dot', () => { map.getCanvas().style.cursor = 'crosshair'; });
+  map.on('mouseenter', 'gap-grid-fill', () => { map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', 'gap-grid-fill', () => { map.getCanvas().style.cursor = 'crosshair'; });
 }
 
 function updatePredictionLayer() {
-  if (map.getSource('lassen-grid'))
-    map.getSource('lassen-grid').setData(buildLassenGridGeoJSON());
-  if (map.getSource('gap-predictions'))
-    map.getSource('gap-predictions').setData(buildPredictionGeoJSON());
+  if (map.getSource('gap-grid'))
+    map.getSource('gap-grid').setData(buildActiveGridGeoJSON());
 }
 
 function togglePredictions(visible) {
   predictionsVisible = visible;
   const vis = visible ? 'visible' : 'none';
-  ['lassen-grid-fill', 'lassen-grid-outline', 'gap-backing', 'gap-ring', 'gap-dot', 'gap-label'].forEach(id => {
+  ['gap-grid-fill', 'gap-grid-outline'].forEach(id => {
     if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
   });
 }

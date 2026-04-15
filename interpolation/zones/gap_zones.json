@@ -1,136 +1,41 @@
 {
   "version": "1.0",
-  "description": "Registry of unmonitored terrain gap zones for avalanche forecast interpolation. Each zone is defined by geographic bounds, anchor avalanche centers, and interpolation metadata. Add new zones here after reviewing output from identify_gap_zones.py.",
+  "description": "Registry of unmonitored terrain gap zones for avalanche forecast interpolation.",
   "zones": [
     {
       "zone_id": "lassen-ca",
       "name": "Lassen Volcanic National Park",
       "status": "pilot",
-      "centroid": [-121.51, 40.49],
-      "bbox": [-121.85, 40.25, -121.15, 40.75],
+      "centroid": [-121.43, 40.47],
+      "bbox": [-121.62, 40.34, -121.25, 40.59],
       "boundary_file": "lassen_boundary.geojson",
       "grid_resolution_deg": 0.015,
+      "fly_to": { "center": [-121.43, 40.47], "zoom": 10, "pitch": 50, "bearing": 0 },
       "snow_climate": "maritime",
       "elevation_range_m": [1800, 3187],
-      "notes": "Southernmost active Cascade volcano. 430 in/yr at visitor center (6700 ft). Between SAC and MSAC with no dedicated forecast. Field observer network active.",
+      "notes": "Southernmost active Cascade volcano. Between SAC and MSAC with no dedicated forecast.",
       "anchor_centers": [
-        {
-          "center_id": "SAC",
-          "distance_km": 189,
-          "direction": "SSE",
-          "corridor_position": 0.0
-        },
-        {
-          "center_id": "MSAC",
-          "distance_km": 117,
-          "direction": "N",
-          "corridor_position": 1.0
-        }
+        { "center_id": "SAC",  "distance_km": 189, "direction": "SSE", "corridor_position": 0.0 },
+        { "center_id": "MSAC", "distance_km": 117, "direction": "N",   "corridor_position": 1.0 }
       ],
-      "lassen_corridor_position": 0.62,
       "field_observers": true,
       "validation_layers": ["field_obs", "cross_center_holdout", "sentinel1_sar"]
     },
     {
-      "zone_id": "s-oregon-cascades",
-      "name": "Southern Oregon Cascades",
-      "status": "candidate",
-      "centroid": [-122.1, 42.5],
-      "bbox": [-122.8, 42.0, -121.5, 43.2],
-      "snow_climate": "maritime",
-      "elevation_range_m": [1500, 3100],
-      "notes": "Between MSAC and COAA. Crater Lake NP area. Larger gap than Lassen corridor.",
-      "anchor_centers": [
-        {
-          "center_id": "MSAC",
-          "distance_km": 130,
-          "direction": "N",
-          "corridor_position": 0.0
-        },
-        {
-          "center_id": "COAA",
-          "distance_km": 145,
-          "direction": "S",
-          "corridor_position": 1.0
-        }
-      ],
-      "field_observers": false,
-      "validation_layers": ["cross_center_holdout", "sentinel1_sar"]
-    },
-    {
       "zone_id": "yosemite-high-country",
-      "name": "Yosemite High Country",
-      "status": "candidate",
-      "centroid": [-119.5, 37.8],
-      "bbox": [-120.0, 37.3, -119.0, 38.3],
+      "name": "Yosemite National Park",
+      "status": "pilot",
+      "centroid": [-119.56, 37.85],
+      "bbox": [-119.89, 37.49, -119.20, 38.19],
+      "boundary_file": "yosemite_boundary.geojson",
+      "grid_resolution_deg": 0.015,
+      "fly_to": { "center": [-119.56, 37.85], "zoom": 9, "pitch": 50, "bearing": 0 },
       "snow_climate": "maritime",
       "elevation_range_m": [2000, 3993],
-      "notes": "Between SAC and ESAC in complex Sierra transition zone. High recreational use warrants interest.",
+      "notes": "Between SAC and ESAC in Sierra Nevada. High recreational use, no dedicated forecast.",
       "anchor_centers": [
-        {
-          "center_id": "SAC",
-          "distance_km": 120,
-          "direction": "N",
-          "corridor_position": 0.0
-        },
-        {
-          "center_id": "ESAC",
-          "distance_km": 85,
-          "direction": "S",
-          "corridor_position": 1.0
-        }
-      ],
-      "field_observers": false,
-      "validation_layers": ["cross_center_holdout"]
-    },
-    {
-      "zone_id": "central-idaho",
-      "name": "Central Idaho Mountains",
-      "status": "candidate",
-      "centroid": [-114.5, 44.2],
-      "bbox": [-115.2, 43.5, -113.8, 44.9],
-      "snow_climate": "intermountain",
-      "elevation_range_m": [1800, 3200],
-      "notes": "Between PAC and SNFAC. Intermountain snow climate, good SNOTEL density.",
-      "anchor_centers": [
-        {
-          "center_id": "PAC",
-          "distance_km": 95,
-          "direction": "W",
-          "corridor_position": 0.0
-        },
-        {
-          "center_id": "SNFAC",
-          "distance_km": 85,
-          "direction": "E",
-          "corridor_position": 1.0
-        }
-      ],
-      "field_observers": false,
-      "validation_layers": ["cross_center_holdout"]
-    },
-    {
-      "zone_id": "northern-nm",
-      "name": "Northern New Mexico High Country",
-      "status": "candidate",
-      "centroid": [-105.5, 36.5],
-      "bbox": [-106.5, 35.8, -104.5, 37.2],
-      "snow_climate": "continental",
-      "elevation_range_m": [2800, 4011],
-      "notes": "Between CAIC and TAC. Continental snow climate. Large gap, sparse SNOTEL. Expected lower interpolation quality.",
-      "anchor_centers": [
-        {
-          "center_id": "CAIC",
-          "distance_km": 280,
-          "direction": "N",
-          "corridor_position": 0.0
-        },
-        {
-          "center_id": "TAC",
-          "distance_km": 95,
-          "direction": "S",
-          "corridor_position": 1.0
-        }
+        { "center_id": "SAC",  "distance_km": 120, "direction": "N", "corridor_position": 0.0 },
+        { "center_id": "ESAC", "distance_km": 85,  "direction": "S", "corridor_position": 1.0 }
       ],
       "field_observers": false,
       "validation_layers": ["cross_center_holdout"]
