@@ -1,0 +1,47 @@
+{
+  "date": "2026-04-15",
+  "center_id": "COAA",
+  "source": "extract",
+  "zones": {
+    "2470": {
+      "zone_name": "Central Cascades",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 2
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "possible",
+          "size_min": 1.0,
+          "size_max": 2.0,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2471": {
+      "zone_name": "Newberry",
+      "danger": {
+        "alpine": 0,
+        "treeline": 0,
+        "below_treeline": 0
+      },
+      "problems": []
+    }
+  },
+  "center_summary": {
+    "danger_max": {
+      "alpine": 2,
+      "treeline": 1,
+      "below_treeline": 1
+    },
+    "active_problem_types": [
+      "Wind Slab"
+    ],
+    "problem_likelihood_max": {
+      "Wind Slab": "possible"
+    }
+  }
+}

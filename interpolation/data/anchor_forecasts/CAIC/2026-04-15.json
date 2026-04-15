@@ -1,0 +1,362 @@
+{
+  "date": "2026-04-15",
+  "center_id": "CAIC",
+  "source": "extract",
+  "zones": {
+    "2722": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2651": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2638": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2682": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2726": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2699": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2668": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2691": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 2
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "possible",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2659": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2702": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2755": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2697": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2660": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2745": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 2
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "possible",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2747": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2690": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2730": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2751": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    },
+    "2754": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "unlikely",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    }
+  },
+  "center_summary": {
+    "danger_max": {
+      "alpine": 2,
+      "treeline": 1,
+      "below_treeline": 1
+    },
+    "active_problem_types": [
+      "Wind Slab"
+    ],
+    "problem_likelihood_max": {
+      "Wind Slab": "possible"
+    }
+  }
+}
