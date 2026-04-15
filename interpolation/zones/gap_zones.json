@@ -8,6 +8,8 @@
       "status": "pilot",
       "centroid": [-121.51, 40.49],
       "bbox": [-121.85, 40.25, -121.15, 40.75],
+      "boundary_file": "lassen_boundary.geojson",
+      "grid_resolution_deg": 0.015,
       "snow_climate": "maritime",
       "elevation_range_m": [1800, 3187],
       "notes": "Southernmost active Cascade volcano. 430 in/yr at visitor center (6700 ft). Between SAC and MSAC with no dedicated forecast. Field observer network active.",
