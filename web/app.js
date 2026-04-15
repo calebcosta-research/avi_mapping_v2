@@ -433,17 +433,22 @@ map.on('load', async () => {
   setupInteractions();
   buildCenterSelector();
 
-  // Prediction overlay toggle — also show/hide the zone selector
+  // Prediction overlay toggle
   document.getElementById('pred-toggle').addEventListener('change', (e) => {
     const on = e.target.checked;
     togglePredictions(on);
     document.getElementById('gap-zone-select').classList.toggle('visible', on);
+    // Auto-fly to the selected zone when enabling
+    if (on) {
+      const zone = GAP_ZONES.find(z => z.id === activeGridZone);
+      if (zone?.flyTo) map.flyTo({ ...zone.flyTo, duration: 1200 });
+    }
   });
 
-  // Gap zone selector — fly to zone and swap grid data
+  // Gap zone selector — fly to zone and repaint
   document.getElementById('gap-zone-select').addEventListener('change', (e) => {
     activeGridZone = e.target.value;
-    updatePredictionLayer();
+    map.triggerRepaint();
     const zone = GAP_ZONES.find(z => z.id === activeGridZone);
     if (zone?.flyTo) map.flyTo({ ...zone.flyTo, duration: 1800 });
   });
@@ -510,18 +515,56 @@ async function loadForecastForDate(date) {
   }
 }
 
-// ── INTERPOLATION OVERLAY ─────────────────────────────────
+// ── INTERPOLATION OVERLAY — Canvas 2D approach ────────────
+//
+// MapLibre GL v3 WebGL fill/circle layers silently fail to render when
+// terrain (DEM exaggeration) is active.  Instead we draw the grid on a
+// plain <canvas> element positioned on top of the map and re-project
+// geographic coordinates to screen pixels with map.project() on every
+// render frame.  This bypasses WebGL entirely and always works.
 
-// Colour expression — reads danger_display (int 1-5) directly.
-const DANGER_MATCH_EXPR = [
-  'match', ['get', 'danger_display'],
-  1, '#5db85c',
-  2, '#fff200',
-  3, '#f5a623',
-  4, '#d0021b',
-  5, '#000000',
-  '#888888',
-];
+const GRID_CANVAS = document.getElementById('grid-canvas');
+
+function syncCanvasSize() {
+  const mapCanvas = map.getCanvas();
+  GRID_CANVAS.width  = mapCanvas.width;
+  GRID_CANVAS.height = mapCanvas.height;
+  GRID_CANVAS.style.width  = mapCanvas.style.width  || mapCanvas.width  + 'px';
+  GRID_CANVAS.style.height = mapCanvas.style.height || mapCanvas.height + 'px';
+}
+
+function renderGridCanvas() {
+  if (!GRID_CANVAS) return;
+  const ctx = GRID_CANVAS.getContext('2d');
+  ctx.clearRect(0, 0, GRID_CANVAS.width, GRID_CANVAS.height);
+
+  if (!predictionsVisible || !predictionsData) return;
+  const pred = predictionsData.predictions?.[activeGridZone];
+  if (!pred?.spatial_grid?.features?.length) return;
+
+  ctx.globalAlpha = 0.82;
+
+  for (const f of pred.spatial_grid.features) {
+    const d     = f.properties.danger_display || 0;
+    const color = DANGER_COLORS[d] ?? DANGER_COLORS[0];
+    const ring  = f.geometry.coordinates[0];
+
+    // Project each corner to screen pixels
+    const pts = ring.map(([lng, lat]) => map.project([lng, lat]));
+
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth   = 0.5;
+    ctx.stroke();
+  }
+
+  ctx.globalAlpha = 1.0;
+}
 
 async function loadPredictions(date) {
   try {
@@ -532,121 +575,24 @@ async function loadPredictions(date) {
     console.warn('[predictions] fetch failed for', date, err.message);
     predictionsData = null;
   }
-  updatePredictionLayer();
-  if (predictionsVisible) togglePredictions(true);
-}
-
-// Raw polygon FeatureCollection for the active zone.
-function buildActiveGridGeoJSON() {
-  const pred = predictionsData?.predictions?.[activeGridZone];
-  return pred?.spatial_grid ?? { type: 'FeatureCollection', features: [] };
-}
-
-// Point FeatureCollection (cell centroids) — used for the circle layer which
-// renders reliably over terrain in MapLibre v3 (fill layers can silently fail).
-function buildActiveGridPoints() {
-  const pred = predictionsData?.predictions?.[activeGridZone];
-  if (!pred?.spatial_grid?.features?.length)
-    return { type: 'FeatureCollection', features: [] };
-
-  return {
-    type: 'FeatureCollection',
-    features: pred.spatial_grid.features.map(f => {
-      const ring = f.geometry.coordinates[0];
-      return {
-        type:       'Feature',
-        geometry:   { type: 'Point', coordinates: [
-          (ring[0][0] + ring[2][0]) / 2,
-          (ring[0][1] + ring[2][1]) / 2,
-        ]},
-        properties: f.properties,
-      };
-    }),
-  };
+  if (predictionsVisible) map.triggerRepaint();
 }
 
 function addPredictionLayer() {
-  if (map.getSource('gap-grid')) return;
-
-  // ── Polygon source + fill/outline (works in most browsers) ──
-  map.addSource('gap-grid', { type: 'geojson', data: buildActiveGridGeoJSON() });
-
-  map.addLayer({
-    id: 'gap-grid-fill', type: 'fill', source: 'gap-grid',
-    paint: { 'fill-color': DANGER_MATCH_EXPR, 'fill-opacity': 0 },
-  });
-  map.addLayer({
-    id: 'gap-grid-outline', type: 'line', source: 'gap-grid',
-    paint: { 'line-color': '#ffffff', 'line-opacity': 0, 'line-width': 0.8 },
-  });
-
-  // ── Point source + circle layer (terrain-proof fallback) ──
-  map.addSource('gap-grid-pts', { type: 'geojson', data: buildActiveGridPoints() });
-
-  map.addLayer({
-    id: 'gap-grid-circles', type: 'circle', source: 'gap-grid-pts',
-    paint: {
-      'circle-color':          DANGER_MATCH_EXPR,
-      'circle-opacity':        0,
-      // Scale radius with zoom so circles snugly tile each ~1.5 km cell
-      'circle-radius': ['interpolate', ['linear'], ['zoom'],
-        8,  3,
-        9,  5,
-        10, 9,
-        11, 17,
-        12, 34,
-      ],
-      'circle-stroke-width':   0.8,
-      'circle-stroke-color':   '#000000',
-      'circle-stroke-opacity': 0,
-    },
-  });
-
-  const dangerLabel = d => ['No Rating','Low','Moderate','Considerable','High','Extreme'][d] || '?';
-
-  // Click popup on circles (always interactive even when fill doesn't render)
-  const onGridClick = (e) => {
-    if (orbitControl?._active) return;
-    const p    = e.features[0].properties;
-    const zone = GAP_ZONES.find(z => z.id === activeGridZone);
-    new maplibregl.Popup()
-      .setLngLat(e.lngLat)
-      .setHTML(`
-        <strong>${zone?.name || activeGridZone}</strong>
-        <div class="pred-table">
-          <div>Alpine</div><div>${dangerLabel(p.danger_alpine_int)} (${parseFloat(p.danger_alpine).toFixed(1)})</div>
-          <div>Treeline</div><div>${dangerLabel(p.danger_treeline_int)} (${parseFloat(p.danger_treeline).toFixed(1)})</div>
-          <div>Below Treeline</div><div>${dangerLabel(p.danger_below_treeline_int)} (${parseFloat(p.danger_below_treeline).toFixed(1)})</div>
-          <div>Uncertainty</div><div>±${p.unc_alpine}</div>
-        </div>
-        <div class="popup-model-note">GP baseline interpolation</div>`)
-      .addTo(map);
-    e.stopPropagation();
-  };
-  map.on('click',      'gap-grid-circles', onGridClick);
-  map.on('click',      'gap-grid-fill',    onGridClick);
-  map.on('mouseenter', 'gap-grid-circles', () => { map.getCanvas().style.cursor = 'pointer';    });
-  map.on('mouseleave', 'gap-grid-circles', () => { map.getCanvas().style.cursor = 'crosshair';  });
-  map.on('mouseenter', 'gap-grid-fill',    () => { map.getCanvas().style.cursor = 'pointer';    });
-  map.on('mouseleave', 'gap-grid-fill',    () => { map.getCanvas().style.cursor = 'crosshair';  });
+  // Size canvas to match map and hook into the render loop.
+  syncCanvasSize();
+  map.on('resize', syncCanvasSize);
+  map.on('render', renderGridCanvas);
 }
 
 function updatePredictionLayer() {
-  const poly = map.getSource('gap-grid');
-  if (poly) poly.setData(buildActiveGridGeoJSON());
-  const pts  = map.getSource('gap-grid-pts');
-  if (pts)  pts.setData(buildActiveGridPoints());
+  if (predictionsVisible) map.triggerRepaint();
 }
 
 function togglePredictions(visible) {
   predictionsVisible = visible;
-  const show = (id, prop, on, off) => {
-    if (map.getLayer(id)) map.setPaintProperty(id, prop, visible ? on : off);
-  };
-  show('gap-grid-fill',    'fill-opacity',          0.72, 0);
-  show('gap-grid-outline', 'line-opacity',           0.45, 0);
-  show('gap-grid-circles', 'circle-opacity',         0.85, 0);
-  show('gap-grid-circles', 'circle-stroke-opacity',  0.5,  0);
+  GRID_CANVAS.style.display = visible ? 'block' : 'none';
+  map.triggerRepaint();
 }
 
 function showPredictionPopup(lngLat, props) {

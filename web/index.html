@@ -409,6 +409,15 @@
 
   <div id="map"></div>
 
+  <!-- Canvas overlay for interpolation grid — drawn in app.js via map.project() -->
+  <canvas id="grid-canvas" style="
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+    display: none;
+  "></canvas>
+
   <script src="app.js"></script>
 </body>
 </html>
