@@ -517,10 +517,16 @@ async function loadPredictions(date) {
     const res = await fetch(predictionsUrlForDate(date));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     predictionsData = await res.json();
-  } catch (_) {
-    predictionsData = null;   // not yet available for this date — clear layer
+    const zones = Object.keys(predictionsData.predictions || {});
+    const cells = predictionsData.predictions?.['lassen-ca']?.spatial_grid?.features?.length ?? 0;
+    console.log(`[predictions] loaded for ${date}: zones=${zones}, lassen cells=${cells}`);
+  } catch (err) {
+    console.error('[predictions] fetch failed:', err);
+    predictionsData = null;
   }
   updatePredictionLayer();
+  // If predictions are already toggled visible, re-apply visibility after data loads
+  if (predictionsVisible) togglePredictions(true);
 }
 
 function buildActiveGridGeoJSON() {
@@ -535,20 +541,25 @@ function buildActiveGridGeoJSON() {
 
 function addPredictionLayer() {
   if (map.getSource('gap-grid')) return;
+  console.log('[predictions] addPredictionLayer called');
 
-  map.addSource('gap-grid', { type: 'geojson', data: buildActiveGridGeoJSON() });
+  try {
+    map.addSource('gap-grid', { type: 'geojson', data: buildActiveGridGeoJSON() });
+  } catch (e) { console.error('[predictions] addSource failed:', e); return; }
 
-  map.addLayer({
-    id: 'gap-grid-fill', type: 'fill', source: 'gap-grid',
-    layout: { visibility: 'none' },
-    paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.72 },
-  });
-
-  map.addLayer({
-    id: 'gap-grid-outline', type: 'line', source: 'gap-grid',
-    layout: { visibility: 'none' },
-    paint: { 'line-color': '#000', 'line-opacity': 0.15, 'line-width': 0.4 },
-  });
+  try {
+    map.addLayer({
+      id: 'gap-grid-fill', type: 'fill', source: 'gap-grid',
+      layout: { visibility: 'none' },
+      paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.72 },
+    });
+    map.addLayer({
+      id: 'gap-grid-outline', type: 'line', source: 'gap-grid',
+      layout: { visibility: 'none' },
+      paint: { 'line-color': '#000', 'line-opacity': 0.15, 'line-width': 0.4 },
+    });
+    console.log('[predictions] layers added OK');
+  } catch (e) { console.error('[predictions] addLayer failed:', e); }
 
   const dangerLabel = d => ['No Rating','Low','Moderate','Considerable','High','Extreme'][d] || '?';
 
@@ -583,7 +594,9 @@ function togglePredictions(visible) {
   predictionsVisible = visible;
   const vis = visible ? 'visible' : 'none';
   ['gap-grid-fill', 'gap-grid-outline'].forEach(id => {
-    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+    const layer = map.getLayer(id);
+    console.log(`[predictions] toggle ${id} → ${vis}, layer exists: ${!!layer}`);
+    if (layer) map.setLayoutProperty(id, 'visibility', vis);
   });
 }
 
