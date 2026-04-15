@@ -1,0 +1,150 @@
+{
+  "date": "2024-12-18",
+  "model": "gp_baseline",
+  "predictions": {
+    "lassen-ca": {
+      "danger": {
+        "alpine": 1.4,
+        "treeline": 1.4,
+        "below_treeline": 1.2
+      },
+      "uncertainty": {
+        "alpine": 0.49,
+        "treeline": 0.49,
+        "below_treeline": 0.4
+      },
+      "anchor_obs": {
+        "SAC": {
+          "alpine": 2,
+          "treeline": 2,
+          "below_treeline": 2
+        },
+        "MSAC": {
+          "alpine": 2,
+          "treeline": 2,
+          "below_treeline": 1
+        }
+      },
+      "danger_rounded": {
+        "alpine": 1,
+        "treeline": 1,
+        "below_treeline": 1
+      }
+    },
+    "s-oregon-cascades": {
+      "danger": {
+        "alpine": 1.4,
+        "treeline": 1.4,
+        "below_treeline": 1.2
+      },
+      "uncertainty": {
+        "alpine": 0.49,
+        "treeline": 0.49,
+        "below_treeline": 0.4
+      },
+      "anchor_obs": {
+        "MSAC": {
+          "alpine": 2,
+          "treeline": 2,
+          "below_treeline": 1
+        },
+        "COAA": {
+          "alpine": 1,
+          "treeline": 1,
+          "below_treeline": 1
+        }
+      },
+      "danger_rounded": {
+        "alpine": 1,
+        "treeline": 1,
+        "below_treeline": 1
+      }
+    },
+    "yosemite-high-country": {
+      "danger": {
+        "alpine": 1.4,
+        "treeline": 1.4,
+        "below_treeline": 1.2
+      },
+      "uncertainty": {
+        "alpine": 0.49,
+        "treeline": 0.49,
+        "below_treeline": 0.4
+      },
+      "anchor_obs": {
+        "SAC": {
+          "alpine": 2,
+          "treeline": 2,
+          "below_treeline": 2
+        },
+        "ESAC": {
+          "alpine": 1,
+          "treeline": 1,
+          "below_treeline": 1
+        }
+      },
+      "danger_rounded": {
+        "alpine": 1,
+        "treeline": 1,
+        "below_treeline": 1
+      }
+    },
+    "central-idaho": {
+      "danger": {
+        "alpine": 1.4,
+        "treeline": 1.4,
+        "below_treeline": 1.2
+      },
+      "uncertainty": {
+        "alpine": 0.49,
+        "treeline": 0.49,
+        "below_treeline": 0.4
+      },
+      "anchor_obs": {},
+      "danger_rounded": {
+        "alpine": 1,
+        "treeline": 1,
+        "below_treeline": 1
+      }
+    },
+    "northern-nm": {
+      "danger": {
+        "alpine": 1.4,
+        "treeline": 1.4,
+        "below_treeline": 1.2
+      },
+      "uncertainty": {
+        "alpine": 0.49,
+        "treeline": 0.49,
+        "below_treeline": 0.4
+      },
+      "anchor_obs": {
+        "CAIC": {
+          "alpine": 1,
+          "treeline": 1,
+          "below_treeline": 1
+        }
+      },
+      "danger_rounded": {
+        "alpine": 1,
+        "treeline": 1,
+        "below_treeline": 1
+      }
+    }
+  },
+  "diagnostics": {
+    "n_anchor_obs": 5,
+    "date_coverage": [
+      "CAIC",
+      "COAA",
+      "ESAC",
+      "MSAC",
+      "SAC"
+    ],
+    "kernel_params": {
+      "alpine": {},
+      "treeline": {},
+      "below_treeline": {}
+    }
+  }
+}

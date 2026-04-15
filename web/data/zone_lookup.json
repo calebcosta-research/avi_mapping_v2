@@ -1,0 +1,602 @@
+{
+  "3004": {
+    "index": 0,
+    "center_id": "BAC",
+    "zone_name": "Bridgeport Avalanche Center",
+    "state": "CA"
+  },
+  "2856": {
+    "index": 1,
+    "center_id": "BTAC",
+    "zone_name": "Salt River and Wyoming Ranges",
+    "state": "WY"
+  },
+  "2860": {
+    "index": 2,
+    "center_id": "BTAC",
+    "zone_name": "Snake River Range",
+    "state": "WY"
+  },
+  "2855": {
+    "index": 3,
+    "center_id": "BTAC",
+    "zone_name": "Tetons",
+    "state": "WY"
+  },
+  "2852": {
+    "index": 4,
+    "center_id": "BTAC",
+    "zone_name": "Togwotee Pass",
+    "state": "WY"
+  },
+  "2470": {
+    "index": 5,
+    "center_id": "COAA",
+    "zone_name": "Central Cascades",
+    "state": "OR"
+  },
+  "2471": {
+    "index": 6,
+    "center_id": "COAA",
+    "zone_name": "Newberry",
+    "state": "OR"
+  },
+  "2818": {
+    "index": 7,
+    "center_id": "CNFAIC",
+    "zone_name": "Chugach State Park",
+    "state": "AK"
+  },
+  "2817": {
+    "index": 8,
+    "center_id": "CNFAIC",
+    "zone_name": "Seward and Lost Lake",
+    "state": "AK"
+  },
+  "2816": {
+    "index": 9,
+    "center_id": "CNFAIC",
+    "zone_name": "Summit Lake",
+    "state": "AK"
+  },
+  "2815": {
+    "index": 10,
+    "center_id": "CNFAIC",
+    "zone_name": "Turnagain Pass and Girdwood",
+    "state": "AK"
+  },
+  "2165": {
+    "index": 11,
+    "center_id": "CAAC",
+    "zone_name": "Douglas Island",
+    "state": "AK"
+  },
+  "2164": {
+    "index": 12,
+    "center_id": "CAAC",
+    "zone_name": "Juneau",
+    "state": "AK"
+  },
+  "1421": {
+    "index": 13,
+    "center_id": "CAC",
+    "zone_name": "Cordova",
+    "state": "AK"
+  },
+  "3002": {
+    "index": 14,
+    "center_id": "EARAC",
+    "zone_name": "North (Castner-Canwell) Eastern Alaska Range",
+    "state": "AK"
+  },
+  "3003": {
+    "index": 15,
+    "center_id": "EARAC",
+    "zone_name": "South (Summit) Eastern Alaska Range",
+    "state": "AK"
+  },
+  "128": {
+    "index": 16,
+    "center_id": "ESAC",
+    "zone_name": "Eastside Region",
+    "state": "CA"
+  },
+  "2841": {
+    "index": 17,
+    "center_id": "EWYAIX",
+    "zone_name": "Big Horns",
+    "state": "WY"
+  },
+  "2843": {
+    "index": 18,
+    "center_id": "EWYAIX",
+    "zone_name": "Sierra Madre",
+    "state": "WY"
+  },
+  "2842": {
+    "index": 19,
+    "center_id": "EWYAIX",
+    "zone_name": "Snowy Range",
+    "state": "WY"
+  },
+  "1735": {
+    "index": 20,
+    "center_id": "FAC",
+    "zone_name": "Flathead Range & Glacier NP",
+    "state": "MT"
+  },
+  "1734": {
+    "index": 21,
+    "center_id": "FAC",
+    "zone_name": "Swan Range",
+    "state": "MT"
+  },
+  "1733": {
+    "index": 22,
+    "center_id": "FAC",
+    "zone_name": "Whitefish Range",
+    "state": "MT"
+  },
+  "2819": {
+    "index": 23,
+    "center_id": "GNFAC",
+    "zone_name": "Bridger Range",
+    "state": "MT"
+  },
+  "2827": {
+    "index": 24,
+    "center_id": "GNFAC",
+    "zone_name": "Cooke City",
+    "state": "MT"
+  },
+  "2826": {
+    "index": 25,
+    "center_id": "GNFAC",
+    "zone_name": "Island Park",
+    "state": "MT"
+  },
+  "2825": {
+    "index": 26,
+    "center_id": "GNFAC",
+    "zone_name": "Lionhead Area",
+    "state": "MT"
+  },
+  "2821": {
+    "index": 27,
+    "center_id": "GNFAC",
+    "zone_name": "Northern Gallatin Range",
+    "state": "MT"
+  },
+  "2822": {
+    "index": 28,
+    "center_id": "GNFAC",
+    "zone_name": "Northern Madison Range",
+    "state": "MT"
+  },
+  "2824": {
+    "index": 29,
+    "center_id": "GNFAC",
+    "zone_name": "Southern Gallatin Range",
+    "state": "MT"
+  },
+  "2823": {
+    "index": 30,
+    "center_id": "GNFAC",
+    "zone_name": "Southern Madison Range",
+    "state": "MT"
+  },
+  "3007": {
+    "index": 31,
+    "center_id": "HAC",
+    "zone_name": "Chilkat Pass",
+    "state": "AK"
+  },
+  "3005": {
+    "index": 32,
+    "center_id": "HAC",
+    "zone_name": "Lutak",
+    "state": "AK"
+  },
+  "3006": {
+    "index": 33,
+    "center_id": "HAC",
+    "zone_name": "Transitional",
+    "state": "AK"
+  },
+  "2152": {
+    "index": 34,
+    "center_id": "HPAC",
+    "zone_name": "Hatcher Pass",
+    "state": "AK"
+  },
+  "1901": {
+    "index": 35,
+    "center_id": "IPAC",
+    "zone_name": "East Cabinet Mountains",
+    "state": "MT"
+  },
+  "1903": {
+    "index": 36,
+    "center_id": "IPAC",
+    "zone_name": "Purcell Mountains",
+    "state": "MT"
+  },
+  "1899": {
+    "index": 37,
+    "center_id": "IPAC",
+    "zone_name": "Selkirk Mountains",
+    "state": "ID"
+  },
+  "1902": {
+    "index": 38,
+    "center_id": "IPAC",
+    "zone_name": "Silver Valley & Bitterroot Mountains",
+    "state": "ID"
+  },
+  "1900": {
+    "index": 39,
+    "center_id": "IPAC",
+    "zone_name": "West Cabinet Mountains",
+    "state": "ID"
+  },
+  "2990": {
+    "index": 40,
+    "center_id": "KPAC",
+    "zone_name": "San Francisco Peaks / Kachina Peaks Wilderness",
+    "state": "AZ"
+  },
+  "1833": {
+    "index": 41,
+    "center_id": "MSAC",
+    "zone_name": "Mount Shasta",
+    "state": "CA"
+  },
+  "2355": {
+    "index": 42,
+    "center_id": "MWAC",
+    "zone_name": "Presidential Range",
+    "state": "NH"
+  },
+  "1655": {
+    "index": 43,
+    "center_id": "NWAC",
+    "zone_name": "East Slopes Central",
+    "state": "WA"
+  },
+  "1654": {
+    "index": 44,
+    "center_id": "NWAC",
+    "zone_name": "East Slopes North",
+    "state": "WA"
+  },
+  "1656": {
+    "index": 45,
+    "center_id": "NWAC",
+    "zone_name": "East Slopes South",
+    "state": "WA"
+  },
+  "1657": {
+    "index": 46,
+    "center_id": "NWAC",
+    "zone_name": "Mt Hood",
+    "state": "OR"
+  },
+  "1645": {
+    "index": 47,
+    "center_id": "NWAC",
+    "zone_name": "Olympics",
+    "state": "WA"
+  },
+  "1653": {
+    "index": 48,
+    "center_id": "NWAC",
+    "zone_name": "Snoqualmie Pass",
+    "state": "WA"
+  },
+  "1649": {
+    "index": 49,
+    "center_id": "NWAC",
+    "zone_name": "Stevens Pass",
+    "state": "WA"
+  },
+  "1647": {
+    "index": 50,
+    "center_id": "NWAC",
+    "zone_name": "West Slopes Central",
+    "state": "WA"
+  },
+  "1646": {
+    "index": 51,
+    "center_id": "NWAC",
+    "zone_name": "West Slopes North",
+    "state": "WA"
+  },
+  "1648": {
+    "index": 52,
+    "center_id": "NWAC",
+    "zone_name": "West Slopes South",
+    "state": "WA"
+  },
+  "2897": {
+    "index": 53,
+    "center_id": "PAC",
+    "zone_name": "Salmon River Mountains",
+    "state": "ID"
+  },
+  "2898": {
+    "index": 54,
+    "center_id": "PAC",
+    "zone_name": "West Mountains",
+    "state": "ID"
+  },
+  "2907": {
+    "index": 55,
+    "center_id": "SNFAC",
+    "zone_name": "Banner Summit",
+    "state": "ID"
+  },
+  "2904": {
+    "index": 56,
+    "center_id": "SNFAC",
+    "zone_name": "Galena Summit & Eastern Mtns",
+    "state": "ID"
+  },
+  "2906": {
+    "index": 57,
+    "center_id": "SNFAC",
+    "zone_name": "Sawtooth & Western Smoky Mtns",
+    "state": "ID"
+  },
+  "2905": {
+    "index": 58,
+    "center_id": "SNFAC",
+    "zone_name": "Soldier & Wood River Valley Mtns",
+    "state": "ID"
+  },
+  "2458": {
+    "index": 59,
+    "center_id": "SAC",
+    "zone_name": "Central Sierra Nevada",
+    "state": "CA"
+  },
+  "1369": {
+    "index": 60,
+    "center_id": "SOAIX",
+    "zone_name": "Southern Oregon",
+    "state": "OR"
+  },
+  "490": {
+    "index": 61,
+    "center_id": "TAC",
+    "zone_name": "Northern New Mexico",
+    "state": "NM"
+  },
+  "1744": {
+    "index": 62,
+    "center_id": "UAC",
+    "zone_name": "Abajos",
+    "state": "UT"
+  },
+  "1736": {
+    "index": 63,
+    "center_id": "UAC",
+    "zone_name": "Logan",
+    "state": "UT"
+  },
+  "1742": {
+    "index": 64,
+    "center_id": "UAC",
+    "zone_name": "Moab",
+    "state": "UT"
+  },
+  "1737": {
+    "index": 65,
+    "center_id": "UAC",
+    "zone_name": "Ogden",
+    "state": "UT"
+  },
+  "1739": {
+    "index": 66,
+    "center_id": "UAC",
+    "zone_name": "Provo",
+    "state": "UT"
+  },
+  "1738": {
+    "index": 67,
+    "center_id": "UAC",
+    "zone_name": "Salt Lake",
+    "state": "UT"
+  },
+  "1741": {
+    "index": 68,
+    "center_id": "UAC",
+    "zone_name": "Skyline",
+    "state": "UT"
+  },
+  "1743": {
+    "index": 69,
+    "center_id": "UAC",
+    "zone_name": "Southwest",
+    "state": "UT"
+  },
+  "1740": {
+    "index": 70,
+    "center_id": "UAC",
+    "zone_name": "Uintas",
+    "state": "UT"
+  },
+  "1611": {
+    "index": 71,
+    "center_id": "VAC",
+    "zone_name": "Continental",
+    "state": "AK"
+  },
+  "1610": {
+    "index": 72,
+    "center_id": "VAC",
+    "zone_name": "Intermountain",
+    "state": "AK"
+  },
+  "1609": {
+    "index": 73,
+    "center_id": "VAC",
+    "zone_name": "Maritime",
+    "state": "AK"
+  },
+  "2985": {
+    "index": 74,
+    "center_id": "WAC",
+    "zone_name": "Blues",
+    "state": "OR"
+  },
+  "2984": {
+    "index": 75,
+    "center_id": "WAC",
+    "zone_name": "Elkhorns",
+    "state": "OR"
+  },
+  "2982": {
+    "index": 76,
+    "center_id": "WAC",
+    "zone_name": "Northern Wallowas",
+    "state": "OR"
+  },
+  "2983": {
+    "index": 77,
+    "center_id": "WAC",
+    "zone_name": "Southern Wallowas",
+    "state": "OR"
+  },
+  "1724": {
+    "index": 78,
+    "center_id": "WCMAC",
+    "zone_name": "Bitterroot",
+    "state": "MT"
+  },
+  "1723": {
+    "index": 79,
+    "center_id": "WCMAC",
+    "zone_name": "Rattlesnake",
+    "state": "MT"
+  },
+  "1722": {
+    "index": 80,
+    "center_id": "WCMAC",
+    "zone_name": "Seeley Lake",
+    "state": "MT"
+  },
+  "2722": {
+    "index": 81,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2651": {
+    "index": 82,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2638": {
+    "index": 83,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2682": {
+    "index": 84,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2726": {
+    "index": 85,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2699": {
+    "index": 86,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2668": {
+    "index": 87,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2691": {
+    "index": 88,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2659": {
+    "index": 89,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2702": {
+    "index": 90,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2755": {
+    "index": 91,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2697": {
+    "index": 92,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2660": {
+    "index": 93,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2745": {
+    "index": 94,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2747": {
+    "index": 95,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2690": {
+    "index": 96,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2730": {
+    "index": 97,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2751": {
+    "index": 98,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  },
+  "2754": {
+    "index": 99,
+    "center_id": "CAIC",
+    "zone_name": "CAIC zone",
+    "state": "CO"
+  }
+}

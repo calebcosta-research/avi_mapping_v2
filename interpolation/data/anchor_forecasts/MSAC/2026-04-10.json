@@ -1,0 +1,48 @@
+{
+  "date": "2026-04-10",
+  "center_id": "MSAC",
+  "source": "extract",
+  "zones": {
+    "1833": {
+      "zone_name": "Mount Shasta",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 2,
+        "alpine": 2
+      },
+      "problems": [
+        {
+          "type": "Wind Slab",
+          "likelihood": "possible",
+          "size_min": 1.0,
+          "size_max": 2.0,
+          "aspects": [],
+          "elevation_bands": []
+        },
+        {
+          "type": "Wet Loose",
+          "likelihood": "possible",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    }
+  },
+  "center_summary": {
+    "danger_max": {
+      "alpine": 2,
+      "treeline": 2,
+      "below_treeline": 1
+    },
+    "active_problem_types": [
+      "Wet Loose",
+      "Wind Slab"
+    ],
+    "problem_likelihood_max": {
+      "Wind Slab": "possible",
+      "Wet Loose": "possible"
+    }
+  }
+}

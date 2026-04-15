@@ -1,0 +1,187 @@
+{
+  "date": "2026-04-10",
+  "center_id": "CAIC",
+  "source": "extract",
+  "zones": {
+    "2722": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2651": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2638": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2682": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2726": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2699": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2668": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2691": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2659": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2702": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2755": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2697": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2660": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2745": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2747": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2690": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2730": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2751": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    },
+    "2754": {
+      "zone_name": "CAIC zone",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": []
+    }
+  },
+  "center_summary": {
+    "danger_max": {
+      "alpine": 1,
+      "treeline": 1,
+      "below_treeline": 1
+    },
+    "active_problem_types": [],
+    "problem_likelihood_max": {}
+  }
+}
