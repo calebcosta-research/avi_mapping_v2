@@ -25,7 +25,7 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        run: pip install requests boto3 scikit-learn numpy
+        run: pip install requests boto3 scikit-learn numpy shapely
 
       - name: Fetch forecasts and build forecast.json
         run: python forecasts/scripts/daily_refresh.py --upload
