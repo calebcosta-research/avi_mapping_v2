@@ -11,7 +11,7 @@
       "uncertainty": {
         "alpine": 0.43,
         "treeline": 0.72,
-        "below_treeline": 0.27
+        "below_treeline": 0.26
       },
       "anchor_obs": {
         "SAC": {
@@ -24,30 +24,6 @@
         "alpine": 2,
         "treeline": 2,
         "below_treeline": 2
-      }
-    },
-    "s-oregon-cascades": {
-      "danger": {
-        "alpine": 2.25,
-        "treeline": 1.7,
-        "below_treeline": 1.41
-      },
-      "uncertainty": {
-        "alpine": 0.43,
-        "treeline": 0.82,
-        "below_treeline": 0.39
-      },
-      "anchor_obs": {
-        "COAA": {
-          "alpine": 2,
-          "treeline": 1,
-          "below_treeline": 1
-        }
-      },
-      "danger_rounded": {
-        "alpine": 2,
-        "treeline": 2,
-        "below_treeline": 1
       }
     },
     "yosemite-high-country": {
@@ -77,48 +53,6 @@
         "alpine": 2,
         "treeline": 2,
         "below_treeline": 2
-      }
-    },
-    "central-idaho": {
-      "danger": {
-        "alpine": 2.25,
-        "treeline": 1.75,
-        "below_treeline": 1.45
-      },
-      "uncertainty": {
-        "alpine": 0.43,
-        "treeline": 0.82,
-        "below_treeline": 0.46
-      },
-      "anchor_obs": {},
-      "danger_rounded": {
-        "alpine": 2,
-        "treeline": 2,
-        "below_treeline": 1
-      }
-    },
-    "northern-nm": {
-      "danger": {
-        "alpine": 2.25,
-        "treeline": 1.75,
-        "below_treeline": 1.41
-      },
-      "uncertainty": {
-        "alpine": 0.43,
-        "treeline": 0.82,
-        "below_treeline": 0.46
-      },
-      "anchor_obs": {
-        "CAIC": {
-          "alpine": 2,
-          "treeline": 1,
-          "below_treeline": 1
-        }
-      },
-      "danger_rounded": {
-        "alpine": 2,
-        "treeline": 2,
-        "below_treeline": 1
       }
     }
   },
