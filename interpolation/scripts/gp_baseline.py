@@ -91,10 +91,18 @@ log = logging.getLogger(__name__)
 SCRIPTS_DIR    = Path(__file__).parent
 INTERP_DIR     = SCRIPTS_DIR.parent
 GAP_ZONES_PATH = INTERP_DIR / "zones" / "gap_zones.json"
+ZONES_DIR      = INTERP_DIR / "zones"
 ANCHOR_DIR     = INTERP_DIR / "data" / "anchor_forecasts"
 OUTPUT_DIR     = INTERP_DIR / "data" / "predictions"
 
 ELEV_BANDS = ["alpine", "treeline", "below_treeline"]
+
+# Nominal elevations (m) used for GP features when predicting at each elevation band
+BAND_ELEVATIONS = {
+    "alpine":          2900,
+    "treeline":        2400,
+    "below_treeline":  1900,
+}
 
 # Approximate center elevations for GP features (meters).
 # Used when SNOTEL elevation data isn't available.
@@ -162,6 +170,134 @@ def load_anchor_obs(target_date: date) -> dict[str, dict]:
             obs[center_id] = {band: danger.get(band, 0) for band in ELEV_BANDS}
 
     return obs
+
+
+# ── Boundary + spatial grid ───────────────────────────────────────────────────
+
+def load_zone_boundary(zone_def: dict):
+    """
+    Load the park boundary polygon for a zone that has a boundary_file.
+    Returns a shapely geometry or None.
+    """
+    boundary_file = zone_def.get("boundary_file")
+    if not boundary_file:
+        return None
+    path = ZONES_DIR / boundary_file
+    if not path.exists():
+        log.warning("Boundary file not found: %s", path)
+        return None
+    try:
+        import json as _json
+        from shapely.geometry import shape as shapely_shape
+        from shapely.ops import unary_union
+        with open(path) as f:
+            gj = _json.load(f)
+        geoms = [shapely_shape(feat["geometry"]) for feat in gj["features"]]
+        return unary_union(geoms)
+    except Exception as e:
+        log.warning("Failed to load boundary %s: %s", path, e)
+        return None
+
+
+def generate_grid_cells(boundary_geom, resolution_deg: float = 0.015) -> list[dict]:
+    """
+    Generate a regular grid of cells within a park boundary polygon.
+    Each cell is a GeoJSON-ready dict with centroid lon/lat for GP prediction.
+    Only cells whose centroid falls within the boundary are kept.
+
+    Returns list of {lon, lat, geom_coords} dicts.
+    """
+    try:
+        from shapely.geometry import Point
+    except ImportError:
+        log.error("shapely required for spatial grid — pip install shapely")
+        return []
+
+    minx, miny, maxx, maxy = boundary_geom.bounds
+    half = resolution_deg / 2.0
+    cells = []
+    y = miny + half
+    while y < maxy:
+        x = minx + half
+        while x < maxx:
+            pt = Point(x, y)
+            if boundary_geom.contains(pt):
+                # Build cell square coords
+                coords = [
+                    [x - half, y - half],
+                    [x + half, y - half],
+                    [x + half, y + half],
+                    [x - half, y + half],
+                    [x - half, y - half],
+                ]
+                cells.append({"lon": x, "lat": y, "coords": coords})
+            x += resolution_deg
+        y += resolution_deg
+
+    log.info("Generated %d grid cells (res=%.3f°) within boundary", len(cells), resolution_deg)
+    return cells
+
+
+def build_grid_features(cells: list[dict], elev_m: float) -> np.ndarray:
+    """Feature matrix [lon, lat, elev] for a list of grid cells at a fixed elevation."""
+    return np.array([[c["lon"], c["lat"], elev_m] for c in cells], dtype=float)
+
+
+def predict_spatial_grid(
+    cells:      list[dict],
+    band:       str,
+    X_anchors_n: np.ndarray,
+    y:          np.ndarray,
+    mu:         np.ndarray,
+    sig:        np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Run GP prediction at grid cell centroids for one elevation band.
+    Returns (mean, std) arrays aligned with cells.
+    """
+    elev_m = BAND_ELEVATIONS[band]
+    X_grid = build_grid_features(cells, elev_m)
+    X_grid_n = (X_grid - mu) / sig
+    try:
+        mean, std = fit_and_predict(X_anchors_n, y, X_grid_n)
+        mean = np.clip(mean, 1.0, 5.0)
+    except Exception as e:
+        log.warning("Spatial GP failed for band %s: %s — using IDW fallback", band, e)
+        mean = np.full(len(cells), float(y.mean()))
+        std  = np.full(len(cells), float(y.std()))
+    return mean, std
+
+
+def build_spatial_geojson(cells: list[dict], preds: dict) -> dict:
+    """
+    Build a GeoJSON FeatureCollection from grid cells with per-band danger predictions.
+    preds = {band: (mean_arr, std_arr)}
+    """
+    features = []
+    n = len(cells)
+    for i in range(n):
+        props = {}
+        for band, (mean_arr, std_arr) in preds.items():
+            danger_raw  = float(mean_arr[i])
+            danger_int  = int(round(danger_raw))
+            props[f"danger_{band}"]     = danger_raw
+            props[f"danger_{band}_int"] = danger_int
+            props[f"unc_{band}"]        = round(float(std_arr[i]), 2)
+
+        # Primary display: alpine danger (or treeline if alpine is 0)
+        d_alp = props.get("danger_alpine_int", 0)
+        d_tl  = props.get("danger_treeline_int", 0)
+        props["danger_display"] = d_alp if d_alp > 0 else d_tl
+
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [cells[i]["coords"]],
+            },
+            "properties": props,
+        })
+    return {"type": "FeatureCollection", "features": features}
 
 
 # ── Feature engineering ───────────────────────────────────────────────────────
@@ -245,15 +381,20 @@ def run_gp_for_date(
 
     X_anchors          = build_features(center_ids)
     X_gaps, gap_ids    = build_gap_features(gap_zones)
-    X_anchors_n, X_gaps_n = normalize_features(X_anchors, X_gaps)
+
+    # Fit normalization on anchor features (reused for spatial grid predictions too)
+    mu  = X_anchors.mean(axis=0)
+    sig = X_anchors.std(axis=0) + 1e-8
+    X_anchors_n = (X_anchors - mu) / sig
+    X_gaps_n    = (X_gaps    - mu) / sig
 
     predictions: dict[str, dict] = {z: {"danger": {}, "uncertainty": {}, "anchor_obs": {}} for z in gap_ids}
     kernel_params: dict[str, dict] = {}
 
+    # Per-band GP fit at centroid points
     for band in ELEV_BANDS:
         y = np.array([obs[cid][band] for cid in center_ids], dtype=float)
 
-        # Skip band if all observations are 0 (no data)
         if y.max() == 0:
             for z in gap_ids:
                 predictions[z]["danger"][band]      = 0.0
@@ -264,33 +405,60 @@ def run_gp_for_date(
             mean, std = fit_and_predict(X_anchors_n, y, X_gaps_n)
         except Exception as e:
             log.warning("GP fit failed for band %s: %s", band, e)
-            # Fall back to inverse-distance weighted mean
             mean = np.full(len(gap_ids), float(y.mean()))
             std  = np.full(len(gap_ids), float(y.std()))
 
-        # Clamp to valid danger range [1, 5]
         mean = np.clip(mean, 1.0, 5.0)
 
         for i, zone_id in enumerate(gap_ids):
             predictions[zone_id]["danger"][band]      = round(float(mean[i]), 2)
             predictions[zone_id]["uncertainty"][band] = round(float(std[i]),  2)
 
-        # Store kernel params from the last fit for diagnostics
-        kernel_params[band] = {}  # sklearn kernel params are complex objects; omit for now
+        kernel_params[band] = {}
 
-    # Add rounded integer predictions and anchor observations
+    # Rounded centroid predictions + anchor obs
     for zone_id in gap_ids:
         predictions[zone_id]["danger_rounded"] = {
             band: int(round(predictions[zone_id]["danger"][band]))
             for band in ELEV_BANDS
         }
-        # Which anchors are relevant to this zone (from gap_zones.json)?
         zone_def = next((z for z in gap_zones if z["zone_id"] == zone_id), None)
         if zone_def:
             for anchor in zone_def.get("anchor_centers", []):
                 cid = anchor["center_id"]
                 if cid in obs:
                     predictions[zone_id]["anchor_obs"][cid] = obs[cid]
+
+    # Spatial grid predictions for zones with a boundary file
+    for zone_def in gap_zones:
+        zone_id = zone_def["zone_id"]
+        if zone_id not in predictions:
+            continue
+        boundary_geom = load_zone_boundary(zone_def)
+        if boundary_geom is None:
+            continue
+
+        resolution = zone_def.get("grid_resolution_deg", 0.015)
+        cells = generate_grid_cells(boundary_geom, resolution)
+        if not cells:
+            continue
+
+        grid_preds = {}
+        for band in ELEV_BANDS:
+            y_band = np.array([obs[cid][band] for cid in center_ids], dtype=float)
+            if y_band.max() == 0:
+                grid_preds[band] = (
+                    np.zeros(len(cells)),
+                    np.zeros(len(cells)),
+                )
+                continue
+            mean_g, std_g = predict_spatial_grid(
+                cells, band, X_anchors_n, y_band, mu, sig
+            )
+            grid_preds[band] = (mean_g, std_g)
+
+        predictions[zone_id]["spatial_grid"] = build_spatial_geojson(cells, grid_preds)
+        log.info("  [%s] spatial grid: %d cells", zone_id, len(cells))
 
     return {
         "date":        target_date.isoformat(),

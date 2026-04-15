@@ -507,34 +507,102 @@ async function loadPredictions(date) {
   updatePredictionLayer();
 }
 
+// Zones that have full spatial grid data (boundary polygon interpolation)
+const SPATIAL_GRID_ZONES = new Set(['lassen-ca']);
+
 function buildPredictionGeoJSON() {
   if (!predictionsData) return { type: 'FeatureCollection', features: [] };
-  const features = GAP_ZONES.map(zone => {
-    const pred = predictionsData.predictions?.[zone.id];
-    if (!pred) return null;
-    const danger = pred.danger_rounded?.alpine || 0;
-    const unc    = pred.uncertainty?.alpine    || 0;
+  // Only include zones WITHOUT a spatial grid as dots
+  const features = GAP_ZONES
+    .filter(zone => !SPATIAL_GRID_ZONES.has(zone.id))
+    .map(zone => {
+      const pred = predictionsData.predictions?.[zone.id];
+      if (!pred) return null;
+      const danger = pred.danger_rounded?.alpine || 0;
+      const unc    = pred.uncertainty?.alpine    || 0;
+      return {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [zone.lon, zone.lat] },
+        properties: {
+          zone_id:    zone.id,
+          zone_name:  zone.name,
+          danger_alpine:    pred.danger_rounded?.alpine         || 0,
+          danger_treeline:  pred.danger_rounded?.treeline       || 0,
+          danger_below:     pred.danger_rounded?.below_treeline || 0,
+          unc_alpine:       parseFloat(unc.toFixed(2)),
+          color:            DANGER_COLORS[danger] || DANGER_COLORS[0],
+          ring_opacity:     parseFloat(Math.max(0.1, 1.0 - unc / 3.0).toFixed(2)),
+        },
+      };
+    }).filter(Boolean);
+  return { type: 'FeatureCollection', features };
+}
+
+function buildLassenGridGeoJSON() {
+  const pred = predictionsData?.predictions?.['lassen-ca'];
+  if (!pred?.spatial_grid) return { type: 'FeatureCollection', features: [] };
+  // Attach a MapLibre-friendly color property to each cell
+  const features = pred.spatial_grid.features.map(f => {
+    const d = f.properties.danger_display || 0;
     return {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [zone.lon, zone.lat] },
+      ...f,
       properties: {
-        zone_id:    zone.id,
-        zone_name:  zone.name,
-        danger_alpine:    pred.danger_rounded?.alpine         || 0,
-        danger_treeline:  pred.danger_rounded?.treeline       || 0,
-        danger_below:     pred.danger_rounded?.below_treeline || 0,
-        unc_alpine:       parseFloat(unc.toFixed(2)),
-        color:            DANGER_COLORS[danger] || DANGER_COLORS[0],
-        ring_opacity:     parseFloat(Math.max(0.1, 1.0 - unc / 3.0).toFixed(2)),
+        ...f.properties,
+        color: DANGER_COLORS[d] || DANGER_COLORS[0],
       },
     };
-  }).filter(Boolean);
+  });
   return { type: 'FeatureCollection', features };
 }
 
 function addPredictionLayer() {
   if (map.getSource('gap-predictions')) return;
 
+  // ── Lassen spatial grid (fill polygons inside park boundary) ──
+  map.addSource('lassen-grid', { type: 'geojson', data: buildLassenGridGeoJSON() });
+
+  map.addLayer({
+    id: 'lassen-grid-fill', type: 'fill', source: 'lassen-grid',
+    layout: { visibility: 'none' },
+    paint: {
+      'fill-color':   ['get', 'color'],
+      'fill-opacity': 0.72,
+    },
+  });
+
+  map.addLayer({
+    id: 'lassen-grid-outline', type: 'line', source: 'lassen-grid',
+    layout: { visibility: 'none' },
+    paint: {
+      'line-color':   '#000000',
+      'line-opacity': 0.15,
+      'line-width':   0.4,
+    },
+  });
+
+  map.on('click', 'lassen-grid-fill', (e) => {
+    if (orbitControl?._active) return;
+    const p = e.features[0].properties;
+    const dangerLabel = d => ['No Rating','Low','Moderate','Considerable','High','Extreme'][d] || '?';
+    const content = `
+      <strong>Lassen Volcanic NP</strong>
+      <div class="pred-table">
+        <div>Alpine</div><div>${dangerLabel(p.danger_alpine_int)} (${p.danger_alpine?.toFixed(1)})</div>
+        <div>Treeline</div><div>${dangerLabel(p.danger_treeline_int)} (${p.danger_treeline?.toFixed(1)})</div>
+        <div>Below Treeline</div><div>${dangerLabel(p.danger_below_treeline_int)} (${p.danger_below_treeline?.toFixed(1)})</div>
+        <div>Uncertainty (alp)</div><div>±${p.unc_alpine}</div>
+      </div>
+      <div class="popup-model-note">GP baseline interpolation</div>`;
+    new maplibregl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(content)
+      .addTo(map);
+    e.stopPropagation();
+  });
+  map.on('mouseenter', 'lassen-grid-fill', () => { map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', 'lassen-grid-fill', () => { map.getCanvas().style.cursor = 'crosshair'; });
+
+  // ── Dot/ring layers for non-grid gap zones ──
   map.addSource('gap-predictions', { type: 'geojson', data: buildPredictionGeoJSON() });
 
   // Dark backing circle — ensures dot is always visible against any terrain
@@ -604,14 +672,16 @@ function addPredictionLayer() {
 }
 
 function updatePredictionLayer() {
-  if (!map.getSource('gap-predictions')) return;
-  map.getSource('gap-predictions').setData(buildPredictionGeoJSON());
+  if (map.getSource('lassen-grid'))
+    map.getSource('lassen-grid').setData(buildLassenGridGeoJSON());
+  if (map.getSource('gap-predictions'))
+    map.getSource('gap-predictions').setData(buildPredictionGeoJSON());
 }
 
 function togglePredictions(visible) {
   predictionsVisible = visible;
   const vis = visible ? 'visible' : 'none';
-  ['gap-backing', 'gap-ring', 'gap-dot', 'gap-label'].forEach(id => {
+  ['lassen-grid-fill', 'lassen-grid-outline', 'gap-backing', 'gap-ring', 'gap-dot', 'gap-label'].forEach(id => {
     if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
   });
 }
