@@ -1,0 +1,48 @@
+{
+  "date": "2026-04-16",
+  "center_id": "ESAC",
+  "source": "extract",
+  "zones": {
+    "128": {
+      "zone_name": "Eastside Region",
+      "danger": {
+        "below_treeline": 1,
+        "treeline": 1,
+        "alpine": 1
+      },
+      "problems": [
+        {
+          "type": "Wet Loose",
+          "likelihood": "possible",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        },
+        {
+          "type": "Wind Slab",
+          "likelihood": "possible",
+          "size_min": 1.0,
+          "size_max": 1.5,
+          "aspects": [],
+          "elevation_bands": []
+        }
+      ]
+    }
+  },
+  "center_summary": {
+    "danger_max": {
+      "alpine": 1,
+      "treeline": 1,
+      "below_treeline": 1
+    },
+    "active_problem_types": [
+      "Wet Loose",
+      "Wind Slab"
+    ],
+    "problem_likelihood_max": {
+      "Wet Loose": "possible",
+      "Wind Slab": "possible"
+    }
+  }
+}
