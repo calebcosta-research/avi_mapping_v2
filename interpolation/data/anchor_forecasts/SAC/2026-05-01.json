@@ -1,0 +1,25 @@
+{
+  "date": "2026-05-01",
+  "center_id": "SAC",
+  "source": "extract",
+  "zones": {
+    "2458": {
+      "zone_name": "Central Sierra Nevada",
+      "danger": {
+        "alpine": 0,
+        "treeline": 0,
+        "below_treeline": 0
+      },
+      "problems": []
+    }
+  },
+  "center_summary": {
+    "danger_max": {
+      "alpine": 0,
+      "treeline": 0,
+      "below_treeline": 0
+    },
+    "active_problem_types": [],
+    "problem_likelihood_max": {}
+  }
+}
