@@ -1,0 +1,25 @@
+{
+  "date": "2026-05-07",
+  "center_id": "MSAC",
+  "source": "extract",
+  "zones": {
+    "1833": {
+      "zone_name": "Mount Shasta",
+      "danger": {
+        "alpine": 0,
+        "treeline": 0,
+        "below_treeline": 0
+      },
+      "problems": []
+    }
+  },
+  "center_summary": {
+    "danger_max": {
+      "alpine": 0,
+      "treeline": 0,
+      "below_treeline": 0
+    },
+    "active_problem_types": [],
+    "problem_likelihood_max": {}
+  }
+}
